@@ -12,6 +12,10 @@ export const status_adapter = {
     label: "Pendiente",
     color: "bg-yellow-100 text-yellow-800 shadow-yellow-100 hover:bg-yellow-100/75",
   },
+  invited: {
+    label: "Invitado",
+    color: "bg-yellow-100 text-yellow-800 shadow-yellow-100 hover:bg-yellow-100/75",
+  },
 }
 
 export const gender_adapter = {
