@@ -15,13 +15,13 @@ import { cn } from "@/lib/utils"
 import { signInSchema } from "@/schemas/auth"
 import { useSignInMutation } from "@/services/auth"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Eye, EyeOff, Loader, Loader2 } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import Cookies from 'js-cookie'
+import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useTransitionRouter } from "next-view-transitions"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import Cookies from 'js-cookie';
-import { AnimatePresence, motion } from "framer-motion"
-import { useTransitionRouter } from "next-view-transitions"
 
 export function LoginForm({
   className,
