@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ViewTransitions } from 'next-view-transitions'
+import StoreProvider from "./store-provider";
+import { Toaster } from "@/components/ui/toaster";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+const publicSans = localFont({
+  src: "./fonts/PublicSans-VariableFont_wght.ttf",
   variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
   weight: "100 900",
 });
 
@@ -24,12 +22,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ViewTransitions>
+      <StoreProvider>
+        <html lang="en">
+          <body
+            className={`${publicSans.variable} antialiased`}
+          >
+            {children}
+            <Toaster />
+          </body>
+        </html>
+      </StoreProvider>
+    </ViewTransitions>
   );
 }
