@@ -44,6 +44,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleAlert,
+  DnaOff,
   Filter,
   Plus,
   Trash
@@ -52,11 +53,14 @@ import { Link } from 'next-view-transitions';
 import { useId, useMemo, useState } from "react";
 import { columns } from "./columns";
 import { status_adapter } from "@/lib/adapters";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function UsersTable() {
   const id = useId();
 
-  const { data: clients, error, isLoading } = useListClientsQuery(undefined);
+  const { data: clients, isLoading } = useListClientsQuery(undefined);
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -245,7 +249,43 @@ export default function UsersTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`loading-${index}`}>
+                  {columns.map((column, colIndex) => (
+                    <TableCell key={`loading-${index}-${colIndex}`} className="last:py-0 last:text-right h-[55px]">
+                      {
+                        colIndex === 3 ?
+                          <Badge
+                            className={cn("shadow-lg w-fit",
+                              status_adapter['inactive'].color
+                            )}
+                          >
+                            <p
+                              className={cn("blur-[6px]")}
+                            >
+                              Invitado
+                            </p>
+                          </Badge>
+                          : colIndex === 4 ?
+                            <div className="flex justify-end">
+                              <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
+                              <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
+                            </div>
+                            :
+                            <span
+                              className={cn("font-medium transition-all duration-200",
+                                isLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
+                              )}
+                            >
+                              jdflsafjladk
+                            </span>
+                      }
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
@@ -256,12 +296,16 @@ export default function UsersTable() {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length}>
+                  <div className="flex flex-col items-center justify-center text-muted-foreground absolute inset-0">
+                    <DnaOff className="w-8 h-8" />
+                    <p className="text-center">No se encontraron estudios.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
+
           </TableBody>
         </Table>
       </div>

@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query'
 import { authApi } from './services/auth'
 import { clientsApi } from './services/clients'
 import { studiesApi } from './services/studies'
+import { s3Api } from './services/s3'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [clientsApi.reducerPath]: clientsApi.reducer,
     [studiesApi.reducerPath]: studiesApi.reducer,
+    [s3Api.reducerPath]: s3Api.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -18,6 +20,7 @@ export const store = configureStore({
       authApi.middleware,
       clientsApi.middleware,
       studiesApi.middleware,
+      s3Api.middleware,
     ),
 })
 

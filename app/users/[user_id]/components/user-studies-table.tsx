@@ -25,7 +25,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { status_adapter, study_status_adapter } from "@/lib/adapters";
-import { useListClientStudiesQuery } from "@/services/clients";
 import {
   ColumnFiltersState,
   flexRender,
@@ -57,6 +56,7 @@ import { columns } from "./columns";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useListClientStudiesQuery } from "@/services/studies";
 
 export default function UserStudiesTable() {
   const params = useParams()
@@ -317,7 +317,6 @@ export default function UserStudiesTable() {
               </TableRow>
             )}
           </TableBody>
-
         </Table>
       </div>
 

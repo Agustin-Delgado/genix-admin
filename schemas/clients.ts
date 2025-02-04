@@ -32,5 +32,16 @@ export const clientStudiesSchema = z.object({
   total_elements: z.number(),
 })
 
+export const newClientSchema = z.object({
+  first_name: z.string({ required_error: "El nombre es requerido" }).min(1, { message: "El nombre es requerido" }),
+  last_name: z.string({ required_error: "El apellido es requerido" }).min(1, { message: "El apellido es requerido" }),
+  identification_number: z.string({ required_error: "La cédula es requerida" }).min(1, { message: "La cédula es requerida" }),
+  birth_date: z.string({ required_error: "La fecha de nacimiento es requerida" }).min(1, { message: "La fecha de nacimiento es requerida" }),
+  gender: z.string({ required_error: "El género es requerido" }).min(1, { message: "El género es requerido" }),
+  phone_number: z.string({ required_error: "El teléfono es requerido" }).min(1, { message: "El teléfono es requerido" }),
+  email: z.string({ required_error: "El email es requerido" }).email({ message: "El email es requerido" }),
+})
+
 export type Client = z.infer<typeof clientSchema>
 export type ClientStudies = z.infer<typeof clientStudiesSchema>
+export type NewClient = z.infer<typeof newClientSchema>

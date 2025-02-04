@@ -6,8 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function handleRipple(e: React.MouseEvent<any>) {
-  console.log('handleRipple');
-
   const button = e.currentTarget;
   const x = e.clientX - button.getBoundingClientRect().left;
   const y = e.clientY - button.getBoundingClientRect().top;

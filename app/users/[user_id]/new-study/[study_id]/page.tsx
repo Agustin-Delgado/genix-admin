@@ -21,39 +21,78 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
-import { useGetStudyQuery } from "@/services/studies";
+import { useCreateStudyMutation, useGetStudyQuery } from "@/services/studies";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileIcon, Plus, Trash } from "lucide-react";
+import { FileIcon, Loader2, Plus, Trash } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { z } from "zod";
+import { object, z } from "zod";
 import NewBlockDialog from "./components/new-block-dialog";
 import Blocks from "./components/blocks";
 import { Square } from "./components/square";
 import { createStudySchema } from "./utils";
 import { Textarea } from "@/components/ui/textarea";
+import { useUploadFileToS3Mutation } from "@/services/s3";
+import { AnimatePresence, motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
+import { useTransitionRouter } from "next-view-transitions";
 
 export default function NewStudyPage() {
+  const router = useTransitionRouter()
+
   const { study_id, user_id } = useParams<{ study_id: string; user_id: string }>();
+  const { toast } = useToast()
 
   const dynamicSchema = createStudySchema(study_id);
+
+  const [uploadFileToS3] = useUploadFileToS3Mutation();
+  const [createStudy] = useCreateStudyMutation();
 
   const { data: study, isLoading: isStudyLoading } = useGetStudyQuery(study_id);
   const { data: client, isLoading: isClientLoading } = useGetClientQuery(user_id ?? "");
 
   const [open, setOpen] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof dynamicSchema>>({
     resolver: zodResolver(dynamicSchema),
     defaultValues: {
-      user_id: "",
-      study_id: "",
+      client_id: "",
+      study_code: "",
     },
   });
 
-  function onSubmit(data: z.infer<typeof dynamicSchema>) {
-    console.log(data);
+  async function onSubmit(data: z.infer<typeof dynamicSchema>) {
+    setLoading(true);
+    try {
+      const storage_ref = await uploadFileToS3({
+        file: data.file,
+        client_id: data.client_id,
+      }).unwrap();
+
+      await createStudy({
+        storage_ref,
+        study_code: data.study_code,
+        client_id: data.client_id,
+        metadata: (data as any).metadata,
+      }).unwrap();
+
+      toast({
+        title: "Estudio creado",
+        description: "El estudio se ha creado exitosamente",
+      });
+
+      router.push(`/users/${user_id}`)
+    } catch (err: any) {
+      toast({
+        title: "Algo salió mal",
+        variant: "destructive",
+        description: "Por favor, intenta de nuevo",
+      })
+    } finally {
+      setLoading(false);
+    }
   }
 
   const uploadedFile = useWatch({
@@ -63,12 +102,12 @@ export default function NewStudyPage() {
 
   useEffect(() => {
     if (!study) return;
-    form.setValue("study_id", study?.code);
+    form.setValue("study_code", study?.code);
   }, [study]);
 
   useEffect(() => {
     if (!client) return;
-    form.setValue("user_id", client?.id);
+    form.setValue("client_id", client?.id);
   }, [client]);
 
   return (
@@ -87,7 +126,7 @@ export default function NewStudyPage() {
             <div className="flex gap-4">
               <FormField
                 control={form.control}
-                name="user_id"
+                name="client_id"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
                     <FormLabel>Usuario</FormLabel>
@@ -123,7 +162,7 @@ export default function NewStudyPage() {
               />
               <FormField
                 control={form.control}
-                name="study_id"
+                name="study_code"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
                     <FormLabel>Estudio</FormLabel>
@@ -170,17 +209,19 @@ export default function NewStudyPage() {
                     <FileUploader onChange={field.onChange} />
                   </FormControl>
                   {uploadedFile && (
-                    <div className="flex items-center gap-2 p-2 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all">
                       <div className="flex items-center gap-2">
                         <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
                           <FileIcon className="w-3.5 h-3.5" />
                         </Square>
                         <span className="font-medium text-sm">{uploadedFile.name}</span>
                       </div>
+
                       <Button
+                        className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        variant="destructive"
+                        type="button"
                         size="icon"
-                        variant="ghost"
-                        className="w-6 h-6 text-destructive hover:text-destructive/80"
                         onClick={() => form.resetField("file")}
                       >
                         <Trash />
@@ -269,7 +310,36 @@ export default function NewStudyPage() {
               />
             )}
             <div className="flex justify-end">
-              <Button type="submit">Guardar</Button>
+              <Button
+                type="submit"
+                className="w-[86px]"
+                disabled={isLoading}
+              >
+                <AnimatePresence mode="wait">
+                  {isLoading ? (
+                    <motion.div
+                      key="loader"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center justify-center"
+                    >
+                      <Loader2 className="!w-5 !h-5 animate-spin" />
+                    </motion.div>
+                  ) : (
+                    <motion.span
+                      key="text"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      Guardar
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Button>
             </div>
           </form>
         </Form>

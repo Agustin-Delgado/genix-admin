@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const createStudySchema = (studyCode: string) => {
   const baseSchema = z.object({
-    user_id: z.string(),
-    study_id: z.string(),
+    client_id: z.string(),
+    study_code: z.string(),
     file: z.instanceof(File, {
       message: "El archivo es requerido",
     }),

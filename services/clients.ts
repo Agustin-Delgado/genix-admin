@@ -1,4 +1,4 @@
-import { Client, ClientStudies } from '@/schemas/clients';
+import { Client, ClientStudies, NewClient } from '@/schemas/clients';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Cookies from 'js-cookie';
 
@@ -14,15 +14,22 @@ export const clientsApi = createApi({
       return headers
     },
   }),
+  tagTypes: ['Client'],
   endpoints: (builder) => ({
     listClients: builder.query<Client[], void>({
       query: () => '/clients',
-    }),
-    listClientStudies: builder.query<ClientStudies, string>({
-      query: (id) => `/client_studies?client_id=${id}`,
+      providesTags: ['Client'],
     }),
     getClient: builder.query<Client, string>({
       query: (id) => `/clients/${id}`,
+    }),
+    createClient: builder.mutation<void, NewClient>({
+      query: (body) => ({
+        url: '/clients',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Client'],
     }),
   }),
 })
@@ -30,5 +37,5 @@ export const clientsApi = createApi({
 export const {
   useListClientsQuery,
   useGetClientQuery,
-  useListClientStudiesQuery,
+  useCreateClientMutation,
 } = clientsApi

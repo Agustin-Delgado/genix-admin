@@ -47,6 +47,7 @@ export default function FileUploader({
             }
           }}
           id="dropzone-file"
+          accept="application/pdf"
           type="file"
           className="hidden"
         />

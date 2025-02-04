@@ -61,7 +61,6 @@ const TabsTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    console.log("click")
 
     const button = e.currentTarget;
     const x = e.clientX - button.getBoundingClientRect().left;
