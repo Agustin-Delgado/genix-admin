@@ -31,10 +31,8 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  DnaOff,
-  Plus
+  DnaOff
 } from "lucide-react";
-import { Link } from "next-view-transitions";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { columns } from "./columns";
@@ -73,8 +71,7 @@ export default function UserStudiesTable() {
   });
 
   return (
-    <div className="space-y-4 flex flex-col h-[calc(100vh-254px)]">
-      {/* Table */}
+    <div className="space-y-4 flex flex-col h-[calc(100vh-262px)]">
       <div className="overflow-hidden rounded-lg border border-border bg-background flex shadow-lg shadow-border h-full">
         <Table className="border-separate border-spacing-0 [&_td]:border-border [&_tfoot_td]:border-t [&_th]:border-b [&_th]:border-border [&_tr:not(:last-child)_td]:border-b [&_tr]:border-none">
           <TableHeader className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm">
@@ -90,7 +87,6 @@ export default function UserStudiesTable() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              // Skeleton de carga
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={`loading-${index}`}>
                   {columns.map((column, colIndex) => (
@@ -101,8 +97,8 @@ export default function UserStudiesTable() {
                         </Badge>
                       ) : colIndex === 3 ? (
                         <div className="flex justify-end">
-                          <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
-                          <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
+                          <Skeleton className="w-[40px] h-[40px] rounded-full border-none blur-[2px]" />
+                          <Skeleton className="w-[40px] h-[40px] rounded-full border-none blur-[2px]" />
                         </div>
                       ) : (
                         <span
@@ -131,7 +127,6 @@ export default function UserStudiesTable() {
                 </TableRow>
               ))
             ) : (
-              // Sin datos
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={columns.length}>
                   <div className="flex flex-col items-center justify-center text-muted-foreground absolute inset-0">
@@ -144,8 +139,6 @@ export default function UserStudiesTable() {
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination */}
       <div className="flex items-center justify-between gap-8">
         <div className="flex grow justify-start whitespace-nowrap text-sm text-muted-foreground">
           <p className="whitespace-nowrap text-sm text-muted-foreground" aria-live="polite">
@@ -164,7 +157,6 @@ export default function UserStudiesTable() {
         <div>
           <Pagination>
             <PaginationContent>
-              {/* First page button */}
               <PaginationItem>
                 <Button
                   size="icon"
@@ -176,7 +168,6 @@ export default function UserStudiesTable() {
                   <ChevronFirst size={16} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Previous page button */}
               <PaginationItem>
                 <Button
                   size="icon"
@@ -188,7 +179,6 @@ export default function UserStudiesTable() {
                   <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Next page button */}
               <PaginationItem>
                 <Button
                   size="icon"
@@ -200,7 +190,6 @@ export default function UserStudiesTable() {
                   <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Last page button */}
               <PaginationItem>
                 <Button
                   size="icon"

@@ -87,7 +87,7 @@ export default function Header() {
                 variant="destructive"
               >
                 <LogOut strokeWidth={2} aria-hidden="true" />
-                <span>Logout</span>
+                <span>Cerrar sesión</span>
               </Button>
             </div>
           </DropdownMenuContent>

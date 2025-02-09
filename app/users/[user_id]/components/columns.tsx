@@ -49,6 +49,7 @@ function RowActions({ row }: { row: Row<ClientStudies['data'][0]> }) {
             </Button>
           </TooltipTrigger>
           <TooltipContent
+            side="left"
             className="px-2 py-1 text-xs"
           >
             Descagar estudio

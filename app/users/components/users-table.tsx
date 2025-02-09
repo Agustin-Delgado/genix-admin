@@ -4,6 +4,7 @@ import NotificationsDialog from "@/components/notifications-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -34,7 +35,6 @@ import {
   useReactTable
 } from "@tanstack/react-table";
 import {
-  AtSign,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
@@ -46,10 +46,9 @@ import {
   Search
 } from "lucide-react";
 import { Link } from 'next-view-transitions';
-import { useCallback, useId, useMemo, useState } from "react";
-import { columns } from "./columns";
-import { Input } from "@/components/ui/input";
+import { useId, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { columns } from "./columns";
 
 export default function UsersTable() {
   const id = useId();
@@ -95,17 +94,47 @@ export default function UsersTable() {
     },
   });
 
-  // Get unique status values
+  const renderLoadingCell = (colIndex: number, isLoading: boolean) => {
+    switch (colIndex) {
+      case 0:
+        return (
+          <Skeleton className="w-4 h-4 rounded-md border-none blur-[2px]" />
+        );
+      case 4:
+        return (
+          <Badge className={cn("shadow-lg w-fit", status_adapter["inactive"].color)}>
+            <p className={cn("blur-[6px]")}>Invitado</p>
+          </Badge>
+        );
+      case 5:
+        return (
+          <div className="flex justify-end">
+            <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
+            <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
+          </div>
+        );
+      default:
+        return (
+          <span
+            className={cn(
+              "font-medium transition-all duration-200",
+              isLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
+            )}
+          >
+            jdflsafjladk
+          </span>
+        );
+    }
+  }
+
   const uniqueStatusValues = useMemo(() => {
     const statusColumn = table.getColumn("status");
-
     if (!statusColumn) return [];
 
     const values = Array.from(statusColumn.getFacetedUniqueValues().keys());
     return values.sort();
   }, [table.getColumn("status")?.getFacetedUniqueValues()]);
 
-  // Get counts for each status
   const statusCounts = useMemo(() => {
     const statusColumn = table.getColumn("status");
     if (!statusColumn) return new Map();
@@ -135,7 +164,6 @@ export default function UsersTable() {
 
   return (
     <div className="space-y-4 flex flex-col h-[calc(100vh-210px)]">
-      {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -149,7 +177,6 @@ export default function UsersTable() {
               <Search size={16} strokeWidth={2} aria-hidden="true" />
             </div>
           </div>
-          {/* Filter by status */}
           <Popover>
             <PopoverTrigger asChild>
               <Button size="sm" variant="outline" className="shadow-sm shrink-0">
@@ -226,8 +253,6 @@ export default function UsersTable() {
           </Button>
         </div>
       </div>
-
-      {/* Table */}
       <div className="overflow-hidden rounded-lg border border-border bg-background flex shadow-lg shadow-border h-full">
         <Table className="border-separate border-spacing-0 [&_td]:border-border [&_tfoot_td]:border-t [&_th]:border-b [&_th]:border-border [&_tr:not(:last-child)_td]:border-b [&_tr]:border-none">
           <TableHeader className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm">
@@ -252,34 +277,11 @@ export default function UsersTable() {
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={`loading-${index}`}>
                   {columns.map((column, colIndex) => (
-                    <TableCell key={`loading-${index}-${colIndex}`} className="last:py-0 last:text-right h-[55px]">
-                      {
-                        colIndex === 3 ?
-                          <Badge
-                            className={cn("shadow-lg w-fit",
-                              status_adapter['inactive'].color
-                            )}
-                          >
-                            <p
-                              className={cn("blur-[6px]")}
-                            >
-                              Invitado
-                            </p>
-                          </Badge>
-                          : colIndex === 4 ?
-                            <div className="flex justify-end">
-                              <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
-                              <Skeleton className="w-[40px] h-[40px] rounded-full border-none" />
-                            </div>
-                            :
-                            <span
-                              className={cn("font-medium transition-all duration-200",
-                                isLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
-                              )}
-                            >
-                              jdflsafjladk
-                            </span>
-                      }
+                    <TableCell
+                      key={`loading-${index}-${colIndex}`}
+                      className="last:py-0 last:text-right h-[55px]"
+                    >
+                      {renderLoadingCell(colIndex, isLoading)}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -308,8 +310,6 @@ export default function UsersTable() {
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination */}
       <div className="flex items-center justify-between gap-8">
         <div className="flex grow justify-start whitespace-nowrap text-sm text-muted-foreground">
           <p className="whitespace-nowrap text-sm text-muted-foreground" aria-live="polite">
@@ -329,12 +329,9 @@ export default function UsersTable() {
             {" "}resultados
           </p>
         </div>
-
-        {/* Pagination buttons */}
         <div>
           <Pagination>
             <PaginationContent>
-              {/* First page button */}
               <PaginationItem>
                 <Button
                   size="icon"
@@ -347,7 +344,6 @@ export default function UsersTable() {
                   <ChevronFirst size={16} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Previous page button */}
               <PaginationItem>
                 <Button
                   size="icon"
@@ -360,7 +356,6 @@ export default function UsersTable() {
                   <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Next page button */}
               <PaginationItem>
                 <Button
                   size="icon"
@@ -373,7 +368,6 @@ export default function UsersTable() {
                   <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </PaginationItem>
-              {/* Last page button */}
               <PaginationItem>
                 <Button
                   size="icon"

@@ -164,7 +164,7 @@ export default function SignIn() {
                         exit={{ opacity: 0, y: 5 }}
                         transition={{ duration: 0.15 }}
                       >
-                        Sign in
+                        Iniciar sesión
                       </motion.span>
                     )}
                   </AnimatePresence>
