@@ -67,7 +67,7 @@ export default function NewBlockDialog({ studyCode }: { studyCode?: string }) {
         <DialogHeader>
           <DialogTitle>Nuevo bloque</DialogTitle>
           <DialogDescription>
-            Los bloques son las secciones del estudio que el usuario verá en la app.
+            Los bloques son las secciones del estudio que el cliente verá en la app.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

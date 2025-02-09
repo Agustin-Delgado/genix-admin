@@ -179,7 +179,7 @@ export default function EditClientPage() {
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Esta será la contraseña temporal del usuario
+                    Esta será la contraseña temporal del cliente
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

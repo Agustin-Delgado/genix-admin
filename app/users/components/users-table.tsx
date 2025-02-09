@@ -42,7 +42,8 @@ import {
   DnaOff,
   Filter,
   Megaphone,
-  Plus
+  Plus,
+  Search
 } from "lucide-react";
 import { Link } from 'next-view-transitions';
 import { useCallback, useId, useMemo, useState } from "react";
@@ -145,7 +146,7 @@ export default function UsersTable() {
               onChange={(e) => setSearchFilter(e.target.value)}
             />
             <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
-              <AtSign size={16} strokeWidth={2} aria-hidden="true" />
+              <Search size={16} strokeWidth={2} aria-hidden="true" />
             </div>
           </div>
           {/* Filter by status */}
@@ -201,7 +202,7 @@ export default function UsersTable() {
                 }
               })
             }}
-            className={cn("ml-auto")}
+            className={cn("ml-auto transition-all")}
             variant="outline"
           >
             <Megaphone

@@ -65,7 +65,7 @@ export default function NotificationsDialog() {
           <DialogTitle>Nueva notificación</DialogTitle>
           <DialogDescription>
             Enviaras la notificación a {
-              payload?.global ? "todos los usuarios" : payload?.clients_count === 1 ? "1 usuario" : `${payload?.clients_count} usuarios`
+              payload?.global ? "todos los clientes" : payload?.clients_count === 1 ? "1 cliente" : `${payload?.clients_count} clientes`
             }.
           </DialogDescription>
         </DialogHeader>

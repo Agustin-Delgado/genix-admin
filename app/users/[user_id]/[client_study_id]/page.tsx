@@ -18,6 +18,8 @@ export default function ClientStudyDetailsPage() {
   const { data: client, isLoading: isClientLoading } = useGetClientQuery(user_id ?? "");
   const { data: clientStudy, isLoading: isStudyLoading } = useGetClientStudyQuery(client_study_id ?? "");
 
+  console.log(isClientLoading, isStudyLoading);
+
   const containerClass =
     "p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group";
 
@@ -62,7 +64,7 @@ export default function ClientStudyDetailsPage() {
       <div className="bg-background p-6 rounded-md shadow-lg shadow-border border space-y-6">
         <div className="flex gap-4">
           <div className="flex flex-col w-full space-y-2">
-            <Label>Usuario</Label>
+            <Label>Cliente</Label>
             <Button
               variant="outline"
               role="combobox"
@@ -76,15 +78,15 @@ export default function ClientStudyDetailsPage() {
               <div className="flex items-center gap-2">
                 <Square className={cn("bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20")}>
                   <p
-                    className={cn("transition-all duration-200", isStudyLoading ? "blur-[4px]" : "blur-none")}
+                    className={cn("transition-all duration-200", isClientLoading ? "blur-[4px]" : "blur-none")}
                   >
-                    {isStudyLoading ? "T" : client?.first_name?.charAt(0)}
+                    {isClientLoading ? "T" : client?.first_name?.charAt(0)}
                   </p>
                 </Square>
                 <p
-                  className={cn("transition-all duration-200", isStudyLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none")}
+                  className={cn("transition-all duration-200", isClientLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none")}
                 >
-                  {isStudyLoading ? "Agustin Delgado" : `${client?.first_name} ${client?.last_name}`}
+                  {isClientLoading ? "Agustin Delgado" : `${client?.first_name} ${client?.last_name}`}
                 </p>
               </div>
             </Button>
@@ -104,22 +106,22 @@ export default function ClientStudyDetailsPage() {
               <div className="flex items-center gap-2">
                 <Square className={cn("bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20")}>
                   <p
-                    className={cn("transition-all duration-200", isClientLoading ? "blur-[4px]" : "blur-none")}
+                    className={cn("transition-all duration-200", isStudyLoading ? "blur-[4px]" : "blur-none")}
                   >
-                    {isClientLoading ? "T" : clientStudy?.title?.charAt(0)}
+                    {isStudyLoading ? "T" : clientStudy?.title?.charAt(0)}
                   </p>
                 </Square>
                 <p
-                  className={cn("transition-all duration-200", isClientLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none")}
+                  className={cn("transition-all duration-200", isStudyLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none")}
                 >
-                  {isClientLoading ? "Agustin Delgado" : `${clientStudy?.title}`}
+                  {isStudyLoading ? "Agustin Delgado" : `${clientStudy?.title}`}
                 </p>
               </div>
             </Button>
           </div>
         </div>
         <div className={cn("space-y-2", !clientStudy?.metadata.blocks?.length && "hidden")}>
-          <Label>Blocks</Label>
+          <Label>Bloques</Label>
           {clientStudy?.code === "nutritional" && (
             clientStudy?.metadata?.blocks?.map((block, index: number) => (
               <div key={index} className={containerClass}>

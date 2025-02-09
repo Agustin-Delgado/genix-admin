@@ -17,7 +17,7 @@ import { Link } from "next-view-transitions";
 import { useParams, usePathname } from "next/navigation";
 
 const breadcrumbMap: Record<string, string> = {
-  users: "Usuarios",
+  users: "Clientes",
   new: "Nuevo cliente",
   "new-study": "Cargar estudio",
   "edit-study": "Editar estudio",

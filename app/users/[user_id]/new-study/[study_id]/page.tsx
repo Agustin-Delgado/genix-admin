@@ -120,7 +120,7 @@ export default function NewStudyPage() {
               name="client_id"
               render={({ field }) => (
                 <FormItem className="flex flex-col w-full">
-                  <FormLabel>Usuario</FormLabel>
+                  <FormLabel>Cliente</FormLabel>
                   <FormControl>
                     <Button
                       variant="outline"

@@ -81,7 +81,7 @@ export default function EditBlockDialog({ studyCode }: { studyCode?: string }) {
         <DialogHeader>
           <DialogTitle>Editar bloque</DialogTitle>
           <DialogDescription>
-            Los bloques son las secciones del estudio que el usuario verá en la app.
+            Los bloques son las secciones del estudio que el cliente verá en la app.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

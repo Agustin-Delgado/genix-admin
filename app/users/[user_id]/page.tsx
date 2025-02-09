@@ -12,8 +12,8 @@ import { gender_adapter, status_adapter } from "@/lib/adapters";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
 import { format, parse } from "date-fns";
-import { Cake, IdCard, Mail, Pencil, Phone, User } from "lucide-react";
-import { useTransitionRouter } from "next-view-transitions";
+import { Cake, IdCard, Mail, Pencil, Phone, Plus, User } from "lucide-react";
+import { Link, useTransitionRouter } from "next-view-transitions";
 import { useParams } from "next/navigation";
 import UserStudiesTable from "./components/user-studies-table";
 
@@ -21,9 +21,9 @@ export default function UserDetailsPage() {
   const params = useParams()
   const router = useTransitionRouter()
 
-  const user_id = params.user_id as string
+  const userId = params.user_id as string
 
-  const { data: client, isLoading } = useGetClientQuery(user_id ?? "")
+  const { data: client, isLoading } = useGetClientQuery(userId ?? "")
 
   const birthDate = client?.birth_date && parse(client.birth_date, "dd/MM/yyyy", new Date())
 
@@ -31,7 +31,17 @@ export default function UserDetailsPage() {
     <ResizablePanelGroup direction="horizontal" className="gap-2 !overflow-visible">
       <ResizablePanel defaultSize={75} className="w-full !overflow-visible">
         <div className="flex flex-col gap-4">
-          <h1 className="text-xl font-semibold">Estudios del cliente</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold">Estudios del cliente</h1>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Button size="sm" className="ml-auto" asChild>
+                <Link href={`/users/${userId}/new-study`}>
+                  <Plus />
+                  Cargar estudio
+                </Link>
+              </Button>
+            </div>
+          </div>
           <UserStudiesTable />
         </div>
       </ResizablePanel>
@@ -64,7 +74,7 @@ export default function UserDetailsPage() {
                     size="icon"
                     variant="outline"
                     className="shadow-md shadow-border rounded-full absolute right-0 top-1/2 transform -translate-y-1/2"
-                    onClick={() => router.push(`/users/${user_id}/edit`)}
+                    onClick={() => router.push(`/users/${userId}/edit`)}
                   >
                     <Pencil />
                   </Button>
