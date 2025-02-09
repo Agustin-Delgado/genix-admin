@@ -1,9 +1,9 @@
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
+import { ViewTransitions } from 'next-view-transitions';
 import localFont from "next/font/local";
 import "./globals.css";
-import { ViewTransitions } from 'next-view-transitions'
 import StoreProvider from "./store-provider";
-import { Toaster } from "@/components/ui/toaster";
 
 const publicSans = localFont({
   src: "./fonts/PublicSans-VariableFont_wght.ttf",

@@ -1,3 +1,5 @@
+import { CalendarDate } from "@internationalized/date";
+import { DateValue } from "react-aria-components";
 import { z } from "zod";
 
 export const clientSchema = z.object({
@@ -6,13 +8,13 @@ export const clientSchema = z.object({
   last_name: z.string(),
   identification_number: z.string(),
   birth_date: z.string(),
-  gender: z.string(),
+  gender: z.enum(["male", "female", "other"]),
   phone_number: z.string(),
   user: z.object({
     id: z.string(),
     email: z.string(),
     userable_type: z.string(),
-    state: z.enum(["active", "inactive", "pending"]),
+    state: z.enum(["active", "inactive", "pending", "rejected", "invited"]),
   }),
 })
 
@@ -24,7 +26,18 @@ export const clientStudiesSchema = z.object({
     date: z.string(),
     state: z.string(),
     client_name: z.string(),
-    metadata: z.object({}),
+    metadata: z.object({
+      blocks: z.array(z.object({
+        title: z.string().optional(),
+        body: z.string().optional(),
+        day: z.string().optional(),
+        dose: z.string().optional(),
+        supplement: z.string().optional(),
+      })).optional(),
+      obs: z.string().optional(),
+    }),
+    client_id: z.string(),
+    study_id: z.string(),
   })),
   current_page: z.number(),
   per_page: z.number(),
@@ -32,12 +45,17 @@ export const clientStudiesSchema = z.object({
   total_elements: z.number(),
 })
 
+const dateValueSchema: z.ZodType<DateValue> = z.custom<DateValue>((data) => {
+  return data instanceof CalendarDate;
+}, { message: "La fecha debe ser un DateValue válido" });
+
+
 export const newClientSchema = z.object({
   first_name: z.string({ required_error: "El nombre es requerido" }).min(1, { message: "El nombre es requerido" }),
   last_name: z.string({ required_error: "El apellido es requerido" }).min(1, { message: "El apellido es requerido" }),
   identification_number: z.string({ required_error: "La cédula es requerida" }).min(1, { message: "La cédula es requerida" }),
-  birth_date: z.string({ required_error: "La fecha de nacimiento es requerida" }).min(1, { message: "La fecha de nacimiento es requerida" }),
-  gender: z.string({ required_error: "El género es requerido" }).min(1, { message: "El género es requerido" }),
+  birth_date: dateValueSchema,
+  gender: z.enum(["male", "female", "other"], { required_error: "El género es requerido", invalid_type_error: "El género es requerido" }),
   phone_number: z.string({ required_error: "El teléfono es requerido" }).min(1, { message: "El teléfono es requerido" }),
   email: z.string({ required_error: "El email es requerido" }).email({ message: "El email es requerido" }),
 })

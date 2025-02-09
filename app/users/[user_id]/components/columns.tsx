@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,21 +8,31 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { study_status_adapter } from "@/lib/adapters";
+import { setDialogsState } from "@/lib/store/dialogs-store";
+import { cn } from "@/lib/utils";
 import { ClientStudies } from "@/schemas/clients";
+import { useDownloadClientStudyMutation } from "@/services/studies";
 import {
   ColumnDef,
   Row
 } from "@tanstack/react-table";
 import { format, parse } from "date-fns";
-import { Ellipsis, FileDown, SquarePen, Trash } from "lucide-react";
-import { useTransitionRouter } from "next-view-transitions";
 import { es } from "date-fns/locale";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { study_status_adapter } from "@/lib/adapters";
+import { Ellipsis, FileDown, SquarePen, Trash } from "lucide-react";
+import { Link, useTransitionRouter } from "next-view-transitions";
 
 function RowActions({ row }: { row: Row<ClientStudies['data'][0]> }) {
   const router = useTransitionRouter()
+
+  const [downloadClientStudy] = useDownloadClientStudyMutation()
+
+  const handleDownload = async () => {
+    const { data } = await downloadClientStudy(row.original.id)
+    if (data) {
+      window.open(data.url, "_blank")
+    }
+  }
 
   return (
     <TooltipProvider delayDuration={1000}>
@@ -29,15 +40,17 @@ function RowActions({ row }: { row: Row<ClientStudies['data'][0]> }) {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              onClick={handleDownload}
               size="icon"
               variant="ghost"
               className="shadow-none rounded-full"
-            // onClick={() => router.push(`/dashboard/users/${row.original.id}/new-study`)}
             >
               <FileDown />
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="px-2 py-1 text-xs !z-[9999]">
+          <TooltipContent
+            className="px-2 py-1 text-xs"
+          >
             Descagar estudio
           </TooltipContent>
         </Tooltip>
@@ -49,11 +62,22 @@ function RowActions({ row }: { row: Row<ClientStudies['data'][0]> }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push(`/users/${row.original.client_id}/${row.original.id}`)}
+              >
                 <SquarePen />
                 <span>Editar</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={() => setDialogsState({
+                  open: "delete-client-study",
+                  payload: {
+                    client_study_id: row.original.id,
+                    user_id: row.original.client_id
+                  }
+                })}
+                className="text-destructive focus:text-destructive"
+              >
                 <Trash />
                 <span>Eliminar</span>
               </DropdownMenuItem>
@@ -70,7 +94,9 @@ export const columns: ColumnDef<ClientStudies['data'][0]>[] = [
     header: "Título",
     accessorKey: "title",
     cell: ({ row }) => <div className="font-medium">
-      {row.original.title}
+      <Link href={`/users/${row.original.client_id}/${row.original.id}`} className="hover:underline">
+        {row.original.title}
+      </Link>
     </div>,
     size: 180,
     enableHiding: false,

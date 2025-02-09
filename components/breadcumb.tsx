@@ -1,5 +1,6 @@
 'use client'
 
+import React from "react";
 import {
   Breadcrumb as ShadcnBreadcrumb,
   BreadcrumbItem,
@@ -10,27 +11,30 @@ import {
 } from "@/components/ui/breadcrumb";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
-import { useGetStudyQuery } from "@/services/studies";
+import { useGetClientStudyQuery, useGetStudyQuery } from "@/services/studies";
 import { Home } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { useParams, usePathname } from "next/navigation";
-import React from "react";
 
-// Mapeo para ciertos segmentos
 const breadcrumbMap: Record<string, string> = {
   users: "Usuarios",
   new: "Nuevo cliente",
   "new-study": "Cargar estudio",
+  "edit-study": "Editar estudio",
+  edit: "Editar cliente",
+  notifications: "Notificaciones",
 };
 
 export default function Breadcrumb() {
   const pathname = usePathname();
-  const { user_id, study_id } = useParams<{ user_id?: string; study_id?: string }>();
+
+  const { user_id, study_id, client_study_id } = useParams<{ user_id?: string; study_id?: string; client_study_id?: string }>();
+
+  const { data: client, isFetching: isClientFetching } = useGetClientQuery(user_id ?? "", { skip: !user_id });
+  const { data: study, isFetching: isStudyFetching } = useGetStudyQuery(study_id ?? "");
+  const { data: clientStudy, isFetching: isClientStudyFetching } = useGetClientStudyQuery(client_study_id ?? "");
 
   const segments = pathname.split("/").slice(1).filter(Boolean);
-
-  const { data: client, isLoading: clientIsLoading } = useGetClientQuery(user_id ?? "");
-  const { data: study, isLoading: studyIsLoading } = useGetStudyQuery(study_id ?? "");
 
   const renderLabelContent = (segment: string) => {
     const isUserId = segment === user_id;
@@ -41,9 +45,7 @@ export default function Breadcrumb() {
         <span
           className={cn(
             "transition-all duration-200",
-            clientIsLoading
-              ? "text-muted-foreground font-normal blur-[6px]"
-              : "blur-none"
+            isClientFetching ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
           )}
         >
           {client ? `${client.first_name} ${client.last_name}` : "Agustin Delgado"}
@@ -55,15 +57,26 @@ export default function Breadcrumb() {
         <span
           className={cn(
             "font-medium transition-all duration-200",
-            studyIsLoading
-              ? "text-muted-foreground font-normal blur-[6px]"
-              : "blur-none"
+            isStudyFetching ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
           )}
         >
           {study ? study.title : "Suplementos"}
         </span>
       );
     }
+    if (segment === client_study_id) {
+      return (
+        <span
+          className={cn(
+            "font-medium transition-all duration-200",
+            isClientStudyFetching ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
+          )}
+        >
+          {clientStudy ? clientStudy.title : "Suplementos"}
+        </span>
+      );
+    }
+
     return breadcrumbMap[segment] || segment;
   };
 
@@ -83,22 +96,30 @@ export default function Breadcrumb() {
         {segments.map((segment, index) => {
           const labelContent = renderLabelContent(segment);
           const isLast = index === segments.length - 1;
+          const isEditStudy = segment === "edit-study";
           const href = `/${segments.slice(0, index + 1).join("/")}`;
 
-          return (
-            <React.Fragment key={href}>
-              <BreadcrumbItem>
-                {isLast ? (
+          if (isLast || isEditStudy) {
+            return (
+              <React.Fragment key={href}>
+                <BreadcrumbItem>
                   <BreadcrumbPage>{labelContent}</BreadcrumbPage>
-                ) : (
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator> / </BreadcrumbSeparator>}
+              </React.Fragment>
+            );
+          } else {
+            return (
+              <React.Fragment key={href}>
+                <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link href={href}>{labelContent}</Link>
                   </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {!isLast && <BreadcrumbSeparator> / </BreadcrumbSeparator>}
-            </React.Fragment>
-          );
+                </BreadcrumbItem>
+                <BreadcrumbSeparator> / </BreadcrumbSeparator>
+              </React.Fragment>
+            );
+          }
         })}
       </BreadcrumbList>
     </ShadcnBreadcrumb>

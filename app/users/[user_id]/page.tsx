@@ -13,11 +13,13 @@ import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
 import { format, parse } from "date-fns";
 import { Cake, IdCard, Mail, Pencil, Phone, User } from "lucide-react";
+import { useTransitionRouter } from "next-view-transitions";
 import { useParams } from "next/navigation";
 import UserStudiesTable from "./components/user-studies-table";
 
 export default function UserDetailsPage() {
   const params = useParams()
+  const router = useTransitionRouter()
 
   const user_id = params.user_id as string
 
@@ -58,7 +60,12 @@ export default function UserDetailsPage() {
                   >
                     {isLoading ? "Agustin Delgado" : `${client?.first_name} ${client?.last_name}`}
                   </p>
-                  <Button size="icon" variant="outline" className="shadow-md shadow-border rounded-full absolute right-0 top-1/2 transform -translate-y-1/2">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="shadow-md shadow-border rounded-full absolute right-0 top-1/2 transform -translate-y-1/2"
+                    onClick={() => router.push(`/users/${user_id}/edit`)}
+                  >
                     <Pencil />
                   </Button>
                 </span>

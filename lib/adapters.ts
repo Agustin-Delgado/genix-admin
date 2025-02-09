@@ -16,6 +16,10 @@ export const status_adapter = {
     label: "Invitado",
     color: "bg-yellow-100 text-yellow-800 shadow-yellow-100 hover:bg-yellow-100/75",
   },
+  rejected: {
+    label: "Rechazado",
+    color: "bg-red-100 text-red-800 shadow-red-100 hover:bg-red-100/75",
+  },
 }
 
 export const gender_adapter = {

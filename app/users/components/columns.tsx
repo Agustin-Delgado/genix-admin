@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { status_adapter } from "@/lib/adapters";
+import { setDialogsState } from "@/lib/store/dialogs-store";
 import { cn } from "@/lib/utils";
 import { Client } from "@/schemas/clients";
 import {
@@ -61,11 +63,21 @@ function RowActions({ row }: { row: Row<Client> }) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push(`/users/${row.original.id}/edit`)}
+              >
                 <SquarePen />
                 <span>Editar</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={() => setDialogsState({
+                  open: "delete-client",
+                  payload: {
+                    client_id: row.original.id,
+                  },
+                })}
+                className="text-destructive focus:text-destructive"
+              >
                 <Trash />
                 <span>Eliminar</span>
               </DropdownMenuItem>
@@ -79,7 +91,25 @@ function RowActions({ row }: { row: Row<Client> }) {
 
 export const columns: ColumnDef<Client>[] = [
   {
-    header: "Name",
+    id: "select",
+    size: 40,
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+  },
+  {
+    header: "Nombre",
     accessorKey: "name",
     cell: ({ row }) => <div className="font-medium">
       <Link href={`/users/${row.original.id}`} className="hover:underline">
@@ -92,17 +122,17 @@ export const columns: ColumnDef<Client>[] = [
     enableHiding: false,
   },
   {
-    header: "Email",
+    header: "Correo electrónico",
     accessorKey: "user.email",
     size: 220,
   },
   {
-    header: "DNI",
+    header: "Número de identificación",
     accessorKey: "identification_number",
     size: 220,
   },
   {
-    header: "Status",
+    header: "Estado",
     accessorFn: (row) => row.user.state,
     id: "status",
     cell: ({ row }) => (

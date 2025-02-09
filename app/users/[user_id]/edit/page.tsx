@@ -21,65 +21,102 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { newClientSchema } from "@/schemas/clients"
-import { useCreateClientMutation } from "@/services/clients"
+import { useCreateClientMutation, useGetClientQuery, useUpdateClientMutation } from "@/services/clients"
 import { AnimatePresence, motion } from "framer-motion"
 import { AtSign, CalendarIcon, IdCard, Loader2, Phone } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Button as AriaButton, DatePicker, Dialog, Group, I18nProvider, Label, Popover } from "react-aria-components"
-import { format, parseISO } from "date-fns"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { Button as AriaButton, DatePicker, DateValue, Dialog, Group, I18nProvider, Label, Popover } from "react-aria-components"
+import { format, isValid, parse, parseISO } from "date-fns"
+import { fromDate, parseAbsoluteToLocal, parseDate } from "@internationalized/date"
 
-export default function NewClientPage() {
+export default function EditClientPage() {
   const router = useRouter()
+  const params = useParams()
+
+  const clientId = params.user_id as string
 
   const { toast } = useToast()
-  const [createClient] = useCreateClientMutation();
+  const { data: client } = useGetClientQuery(clientId)
+  const [updateClient] = useUpdateClientMutation();
 
   const [isLoading, setLoading] = useState(false)
 
-  const form = useForm<z.infer<typeof newClientSchema>>({
-    resolver: zodResolver(newClientSchema),
+  const extendedSchema = newClientSchema.extend({
+    email: z.string().optional(),
+    user_state: z.enum(["invited", "active", "pending", "rejected", "inactive"], { required_error: "El estado es requerido", invalid_type_error: "El estado es requerido" }),
+  });
+
+  const form = useForm<z.infer<typeof extendedSchema>>({
+    resolver: zodResolver(extendedSchema),
     defaultValues: {
-      first_name: "",
-      last_name: "",
-      email: "",
-      identification_number: "",
-      birth_date: "",
-      phone_number: "",
-    },
+      first_name: client?.first_name ?? "",
+      last_name: client?.last_name ?? "",
+      identification_number: client?.identification_number ?? "",
+      birth_date: client && parseDate(formatDateToISO(client?.birth_date)),
+      gender: client?.gender,
+      phone_number: client?.phone_number ?? "",
+      user_state: client?.user.state,
+    }
   })
 
-  async function onSubmit(data: z.infer<typeof newClientSchema>) {
+  function formatDateToISO(dateStr: string) {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toISOString().split('T')[0];
+  }
+
+  async function onSubmit(data: z.infer<typeof extendedSchema>) {
     const formattedBirthDay = format(parseISO(data.birth_date.toString()), "dd/MM/yyyy")
 
     setLoading(true);
     try {
-      await createClient({
-        ...data,
-        birth_date: formattedBirthDay,
+      await updateClient({
+        id: clientId,
+        data: {
+          ...data,
+          birth_date: formattedBirthDay,
+        }
       }).unwrap()
 
       toast({
-        title: "Estudio creado",
-        description: "El estudio se ha creado exitosamente",
+        title: "Cliente actualizado",
+        description: "El cliente ha sido actualizado exitosamente",
       });
 
-      router.push(`/users`)
+      router.push(`/users/${clientId}`);
     } catch (err: any) {
       console.error(err)
       toast({
         title: "Algo salió mal",
         variant: "destructive",
-        description: err.data.error || "Ocurrió un error al crear el estudio",
+        description: err.data.error || "Ocurrió un error al actualizar el cliente",
       })
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    if (client) {
+      form.reset({
+        first_name: client.first_name,
+        last_name: client.last_name,
+        identification_number: client.identification_number,
+        birth_date: parseDate(formatDateToISO(client.birth_date)),
+        gender: client.gender,
+        phone_number: client.phone_number,
+        user_state: client.user.state,
+      })
+    }
+    return () => {
+      form.reset()
+    }
+  }, [client])
+
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Crear un nuevo cliente</h1>
+      <h1 className="text-xl font-semibold">Editar cliente</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background p-4 rounded-md shadow-lg shadow-border border space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -150,31 +187,6 @@ export default function NewClientPage() {
             />
             <FormField
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="space-y-1 group">
-                  <FormLabel className={cn("group-focus-within:text-primary transition-colors", form.formState.errors.email && "group-focus-within:text-destructive")}>
-                    Correo electrónico
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        className={cn("peer ps-9", form.formState.errors.email && "border-destructive hover:border-destructive focus:!border-destructive focus:!shadow-destructive/25")}
-                        placeholder="jhondoe@gmail.com"
-                        type="email"
-                        {...field}
-                      />
-                      <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
-                        <AtSign size={16} strokeWidth={2} aria-hidden="true" />
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="phone_number"
               render={({ field }) => (
                 <FormItem className="space-y-1 group">
@@ -206,6 +218,7 @@ export default function NewClientPage() {
                     <I18nProvider locale="es-419">
                       <DatePicker
                         className="space-y-1 group"
+                        value={field.value ? field.value : undefined}
                         onChange={(date) => field.onChange(date)}
                       >
                         <FormLabel className={cn("group-focus-within:text-primary transition-colors", form.formState.errors.birth_date && "group-focus-within:text-destructive")}>
@@ -243,7 +256,10 @@ export default function NewClientPage() {
               render={({ field }) => (
                 <FormItem className="space-y-1">
                   <FormLabel>Género</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger
                         className={cn(form.formState.errors.gender && "border-destructive hover:border-destructive focus-visible:!border-destructive focus-visible:!shadow-destructive/25 data-[state=open]:!border-destructive data-[state=open]:!shadow-destructive/25")}
@@ -255,6 +271,35 @@ export default function NewClientPage() {
                       <SelectItem value="male">Masculino</SelectItem>
                       <SelectItem value="female">Femenino</SelectItem>
                       <SelectItem value="other">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="user_state"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel>Estado</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger
+                        className={cn(form.formState.errors.user_state && "border-destructive hover:border-destructive focus-visible:!border-destructive focus-visible:!shadow-destructive/25 data-[state=open]:!border-destructive data-[state=open]:!shadow-destructive/25")}
+                      >
+                        <SelectValue placeholder="Selecciona un estado" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="rejected">Rechazado</SelectItem>
+                      <SelectItem value="inactive">Inactivo</SelectItem>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="invited">Invitado</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

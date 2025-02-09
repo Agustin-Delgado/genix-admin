@@ -11,11 +11,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -25,6 +27,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { status_adapter, study_status_adapter } from "@/lib/adapters";
+import { cn } from "@/lib/utils";
+import { useListClientStudiesQuery } from "@/services/studies";
 import {
   ColumnFiltersState,
   flexRender,
@@ -34,7 +38,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
-  SortingState,
   useReactTable,
   VisibilityState
 } from "@tanstack/react-table";
@@ -53,10 +56,6 @@ import { Link } from 'next-view-transitions';
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { columns } from "./columns";
-import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { useListClientStudiesQuery } from "@/services/studies";
 
 export default function UserStudiesTable() {
   const params = useParams()
@@ -72,17 +71,11 @@ export default function UserStudiesTable() {
     pageSize: client_studies?.per_page ?? 20,
   });
 
-  const [sorting, setSorting] = useState<SortingState>([{
-    id: "date",
-    desc: false,
-  }]);
-
   const table = useReactTable({
     data: client_studies?.data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
     enableSortingRemoval: false,
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
@@ -91,7 +84,6 @@ export default function UserStudiesTable() {
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     state: {
-      sorting,
       pagination,
       columnFilters,
       columnVisibility,
@@ -135,7 +127,7 @@ export default function UserStudiesTable() {
   };
 
   return (
-    <div className="space-y-4 flex flex-col h-[calc(100vh-205px)]">
+    <div className="space-y-4 flex flex-col h-[calc(100vh-254px)]">
       {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Filter by status */}

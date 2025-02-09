@@ -1,4 +1,6 @@
 "use client";
+
+import { locales } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
@@ -7,14 +9,37 @@ import {
   FileCaptionButton,
   FileReplaceButton,
   FormattingToolbar,
-  FormattingToolbarController
+  FormattingToolbarController,
+  useCreateBlockNote
 } from "@blocknote/react";
+import { useEffect } from "react";
 import { UseFormSetValue } from "react-hook-form";
 
-export default function Editor({ setValue, editor }: {
+export default function Editor({ setValue, initialValue }: {
   setValue: UseFormSetValue<any>;
-  editor: any;
+  initialValue?: string;
 }) {
+
+  const locale = locales["es"];
+
+  const editor = useCreateBlockNote({
+    dictionary: {
+      ...locale,
+      placeholders: {
+        ...locale.placeholders,
+        default: "Escribe aquí...",
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (!initialValue) return;
+
+    (async () => {
+      const blocks = await editor.tryParseMarkdownToBlocks(initialValue);
+      editor.replaceBlocks(editor.document, blocks);
+    })();
+  }, [editor]);
 
   return <BlockNoteView
     editor={editor}

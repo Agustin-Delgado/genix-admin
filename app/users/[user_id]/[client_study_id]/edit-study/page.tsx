@@ -17,7 +17,7 @@ import { setDialogsState } from "@/lib/store/dialogs-store";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
 import { useUploadFileToS3Mutation } from "@/services/s3";
-import { useCreateStudyMutation, useGetStudyQuery } from "@/services/studies";
+import { useCreateStudyMutation, useGetClientStudyQuery } from "@/services/studies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileIcon, Loader2, Plus, Trash } from "lucide-react";
@@ -26,25 +26,29 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import NewBlockDialog from "../../components/new-block-dialog";
 import Blocks from "./components/blocks";
-import { createStudySchema } from "../../utils";
+import NewBlockDialog from "../../components/new-block-dialog";
 import { Square } from "../../components/square";
+import EditBlockDialog from "./components/edit-block-dialog";
+import { createStudySchema } from "../../utils";
 
-export default function NewStudyPage() {
+export default function EditClientStudyPage() {
   const router = useTransitionRouter()
 
-  const { study_id, user_id } = useParams<{ study_id: string; user_id: string }>();
+  const { client_study_id, user_id } = useParams<{ client_study_id: string; user_id: string }>();
   const { toast } = useToast()
 
-  const dynamicSchema = createStudySchema(study_id);
+  const dynamicSchema = createStudySchema(client_study_id);
 
   const [uploadFileToS3] = useUploadFileToS3Mutation();
   const [createStudy] = useCreateStudyMutation();
 
-  const { data: study, isLoading: isStudyLoading } = useGetStudyQuery(study_id);
+  const { data: clientStudy, isLoading: isClientStudyLoading } = useGetClientStudyQuery(client_study_id);
   const { data: client, isLoading: isClientLoading } = useGetClientQuery(user_id ?? "");
 
+  console.log(clientStudy)
+
+  const [open, setOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof dynamicSchema>>({
@@ -56,35 +60,36 @@ export default function NewStudyPage() {
   });
 
   async function onSubmit(data: z.infer<typeof dynamicSchema>) {
-    setLoading(true);
-    try {
-      const storage_ref = await uploadFileToS3({
-        file: data.file,
-        client_id: data.client_id,
-      }).unwrap();
-
-      await createStudy({
-        storage_ref,
-        study_code: data.study_code,
-        client_id: data.client_id,
-        metadata: (data as any).metadata,
-      }).unwrap();
-
-      toast({
-        title: "Estudio creado",
-        description: "El estudio se ha creado exitosamente",
-      });
-
-      router.push(`/users/${user_id}`)
-    } catch (err: any) {
-      toast({
-        title: "Algo salió mal",
-        variant: "destructive",
-        description: "Por favor, intenta de nuevo",
-      })
-    } finally {
-      setLoading(false);
-    }
+    console.log(data)
+    /*     setLoading(true);
+        try {
+          const storage_ref = await uploadFileToS3({
+            file: data.file,
+            client_id: data.client_id,
+          }).unwrap();
+    
+          await createStudy({
+            storage_ref,
+            study_code: data.study_code,
+            client_id: data.client_id,
+            metadata: (data as any).metadata,
+          }).unwrap();
+    
+          toast({
+            title: "Estudio creado",
+            description: "El estudio se ha creado exitosamente",
+          });
+    
+          router.push(`/users/${user_id}`)
+        } catch (err: any) {
+          toast({
+            title: "Algo salió mal",
+            variant: "destructive",
+            description: "Por favor, intenta de nuevo",
+          })
+        } finally {
+          setLoading(false);
+        } */
   }
 
   const uploadedFile = useWatch({
@@ -92,10 +97,14 @@ export default function NewStudyPage() {
     name: "file",
   });
 
+  //console.log(form.watch())
+
   useEffect(() => {
-    if (!study) return;
-    form.setValue("study_code", study?.code);
-  }, [study]);
+    if (!clientStudy) return;
+
+    form.setValue("study_code", clientStudy?.code);
+    form.setValue("metadata", clientStudy?.metadata);
+  }, [clientStudy]);
 
   useEffect(() => {
     if (!client) return;
@@ -107,10 +116,10 @@ export default function NewStudyPage() {
       <h1
         className={cn(
           "text-xl font-semibold transition-all duration-200",
-          isStudyLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
+          isClientStudyLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none"
         )}
       >
-        {isStudyLoading ? "texto de estudio" : study?.title}
+        {isClientStudyLoading ? "texto de estudio" : clientStudy?.title}
       </h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background p-6 rounded-md shadow-lg shadow-border border space-y-6">
@@ -171,15 +180,15 @@ export default function NewStudyPage() {
                       <div className="flex items-center gap-2">
                         <Square className={cn("bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20")}>
                           <p
-                            className={cn("transition-all duration-200", isStudyLoading ? "blur-[4px]" : "blur-none")}
+                            className={cn("transition-all duration-200", isClientStudyLoading ? "blur-[4px]" : "blur-none")}
                           >
-                            {isStudyLoading ? "T" : study?.title?.charAt(0)}
+                            {isClientStudyLoading ? "T" : clientStudy?.title?.charAt(0)}
                           </p>
                         </Square>
                         <p
-                          className={cn("transition-all duration-200", isStudyLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none")}
+                          className={cn("transition-all duration-200", isClientStudyLoading ? "text-muted-foreground font-normal blur-[6px]" : "blur-none")}
                         >
-                          {isStudyLoading ? "Agustin Delgado" : study?.title}
+                          {isClientStudyLoading ? "Agustin Delgado" : clientStudy?.title}
                         </p>
                       </div>
                     </Button>
@@ -223,7 +232,7 @@ export default function NewStudyPage() {
               </FormItem>
             )}
           />
-          {study_id !== "lab" && study_id !== "in_body" && study_id !== "genetic" && (
+          {clientStudy?.code !== "lab" && clientStudy?.code !== "in_body" && clientStudy?.code !== "genetic" && (
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-end">
                 <Label
@@ -238,7 +247,7 @@ export default function NewStudyPage() {
                   type="button"
                   size="sm"
                   onClick={() => setDialogsState({
-                    payload: { study_code: study?.code },
+                    payload: { study_code: clientStudy?.code },
                     open: "new-block"
                   })}
                 >
@@ -254,7 +263,7 @@ export default function NewStudyPage() {
               )}
             </div>
           )}
-          {(study_id === "lab" || study_id === "in_body" || study_id === "genetic") && (
+          {(clientStudy?.code === "lab" || clientStudy?.code === "in_body" || clientStudy?.code === "genetic") && (
             <FormField
               control={form.control}
               name={"metadata.obs" as any}
@@ -273,7 +282,7 @@ export default function NewStudyPage() {
               )}
             />
           )}
-          {study_id === "supplements" && (
+          {clientStudy?.code === "supplements" && (
             <FormField
               control={form.control}
               name={"metadata.note" as any}
@@ -325,8 +334,12 @@ export default function NewStudyPage() {
             </Button>
           </div>
           <NewBlockDialog
-            key={study?.code}
-            studyCode={study?.code}
+            key={`new-${clientStudy?.code}`}
+            studyCode={clientStudy?.code}
+          />
+          <EditBlockDialog
+            key={`edit-${clientStudy?.code}`}
+            studyCode={clientStudy?.code}
           />
         </form>
       </Form>

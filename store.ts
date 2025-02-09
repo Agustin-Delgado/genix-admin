@@ -4,6 +4,7 @@ import { authApi } from './services/auth'
 import { clientsApi } from './services/clients'
 import { studiesApi } from './services/studies'
 import { s3Api } from './services/s3'
+import { notificationsApi } from './services/notifications'
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     [clientsApi.reducerPath]: clientsApi.reducer,
     [studiesApi.reducerPath]: studiesApi.reducer,
     [s3Api.reducerPath]: s3Api.reducer,
+    [notificationsApi.reducerPath]: notificationsApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -21,6 +23,7 @@ export const store = configureStore({
       clientsApi.middleware,
       studiesApi.middleware,
       s3Api.middleware,
+      notificationsApi.middleware,
     ),
 })
 

@@ -27,6 +27,19 @@ export const studiesApi = createApi({
     getStudy: builder.query<Study, string>({
       query: (code) => `/studies/${code}`,
     }),
+    getClientStudy: builder.query<ClientStudies['data'][0], string>({
+      query: (id) => `/client_studies/${id}`,
+    }),
+    getClientStudyDownloadLink: builder.query<{ url: string }, string>({
+      query: (id) => `/client_studies/${id}/download_link`,
+    }),
+    deleteClientStudy: builder.mutation<{ id: string }, string>({
+      query: (id) => ({
+        url: `/client_studies/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Study'],
+    }),
     createStudy: builder.mutation<
       Study,
       { storage_ref: string; study_code: string; client_id: string; metadata: object }
@@ -38,6 +51,9 @@ export const studiesApi = createApi({
       }),
       invalidatesTags: ['Study'],
     }),
+    downloadClientStudy: builder.mutation<{ url: string }, string>({
+      query: (id) => `/client_studies/${id}/download_link`,
+    }),
   }),
 });
 
@@ -46,4 +62,8 @@ export const {
   useGetStudyQuery,
   useCreateStudyMutation,
   useListClientStudiesQuery,
+  useGetClientStudyQuery,
+  useGetClientStudyDownloadLinkQuery,
+  useDeleteClientStudyMutation,
+  useDownloadClientStudyMutation
 } = studiesApi;

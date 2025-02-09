@@ -2,20 +2,20 @@
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { HomeIcon as House, PanelsTopLeft } from "lucide-react"
+import { Megaphone, Users } from "lucide-react"
 import { useTransitionRouter } from "next-view-transitions"
 import { usePathname } from "next/navigation"
 
 const tabs = [
   {
     id: "users",
-    label: "Usuarios",
-    icon: House
+    label: "Clientes",
+    icon: Users
   },
   {
     id: "notifications",
     label: "Notificaciones",
-    icon: PanelsTopLeft
+    icon: Megaphone
   }
 ]
 

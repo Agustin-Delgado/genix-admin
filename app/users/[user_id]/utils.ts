@@ -7,6 +7,7 @@ export const createStudySchema = (studyCode: string) => {
     file: z.instanceof(File, {
       message: "El archivo es requerido",
     }),
+    metadata: z.object({}).passthrough().optional()
   });
   switch (studyCode) {
     case "nutritional":
@@ -59,6 +60,14 @@ export const createStudySchema = (studyCode: string) => {
         })
       );
     case "in_body":
+      return baseSchema.merge(
+        z.object({
+          metadata: z.object({
+            obs: z.string(),
+          }),
+        })
+      );
+    case "genetic":
       return baseSchema.merge(
         z.object({
           metadata: z.object({
@@ -122,6 +131,16 @@ export const getBlockSchemaAndDefaults = (study_id: string) => {
         ]
       };
     case "in_body":
+      return {
+        schema: z.object({
+          obs: z.string().nonempty("La observación es requerida"),
+        }),
+        defaultValues: { obs: "" },
+        fields: [
+          { name: "obs", label: "Observación", type: "textarea" },
+        ]
+      };
+    case "genetic":
       return {
         schema: z.object({
           obs: z.string().nonempty("La observación es requerida"),

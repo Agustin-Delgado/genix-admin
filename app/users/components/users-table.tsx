@@ -1,21 +1,13 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import NotificationsDialog from "@/components/notifications-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -24,6 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { status_adapter } from "@/lib/adapters";
+import { setDialogsState } from "@/lib/store/dialogs-store";
+import { cn } from "@/lib/utils";
 import { useListClientsQuery } from "@/services/clients";
 import {
   ColumnFiltersState,
@@ -39,28 +34,32 @@ import {
   useReactTable
 } from "@tanstack/react-table";
 import {
+  AtSign,
   ChevronFirst,
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  CircleAlert,
   DnaOff,
   Filter,
-  Plus,
-  Trash
+  Megaphone,
+  Plus
 } from "lucide-react";
 import { Link } from 'next-view-transitions';
-import { useId, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { columns } from "./columns";
-import { status_adapter } from "@/lib/adapters";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "use-debounce";
 
 export default function UsersTable() {
   const id = useId();
 
-  const { data: clients, isLoading } = useListClientsQuery(undefined);
+  const [searchFilter, setSearchFilter] = useState<string>("");
+
+  const [debouncedSearchFilter] = useDebounce(searchFilter, 500);
+
+  const { data: clients, isLoading } = useListClientsQuery({
+    query: debouncedSearchFilter
+  });
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -134,91 +133,90 @@ export default function UsersTable() {
   };
 
   return (
-    <div className="space-y-4 flex flex-col h-[calc(100vh-109px)]">
+    <div className="space-y-4 flex flex-col h-[calc(100vh-210px)]">
       {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Filter by status */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button size="sm" variant="outline" className="shadow-sm">
-              <Filter />
-              Estado
-              {selectedStatuses.length > 0 && (
-                <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                  {selectedStatuses.length}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="min-w-36 p-3" align="start">
-            <div className="space-y-3">
-              <div className="text-xs font-medium text-muted-foreground">Filters</div>
-              <div className="space-y-3">
-                {uniqueStatusValues.map((value, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`${id}-${i}`}
-                      checked={selectedStatuses.includes(value)}
-                      onCheckedChange={(checked: boolean) => handleStatusChange(checked, value)}
-                    />
-                    <Label
-                      htmlFor={`${id}-${i}`}
-                      className="flex grow justify-between gap-2 font-normal"
-                    >
-                      {status_adapter[value as keyof typeof status_adapter].label}
-                      <span className="ms-2 text-xs text-muted-foreground">
-                        {statusCounts.get(value)}
-                      </span>
-                    </Label>
-                  </div>
-                ))}
-              </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Input
+              className="h-9 peer ps-9"
+              placeholder="Buscar por nombre..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+            />
+            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+              <AtSign size={16} strokeWidth={2} aria-hidden="true" />
             </div>
-          </PopoverContent>
-        </Popover>
-        <div className="flex items-center gap-3">
-          {/* Delete button */}
-          {table.getSelectedRowModel().rows.length > 0 && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="ml-auto" variant="outline">
-                  <Trash
-                    className="-ms-1 me-2 opacity-60"
-                    size={16}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                  Delete
+          </div>
+          {/* Filter by status */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size="sm" variant="outline" className="shadow-sm shrink-0">
+                <Filter />
+                Estado
+                {selectedStatuses.length > 0 && (
                   <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                    {table.getSelectedRowModel().rows.length}
+                    {selectedStatuses.length}
                   </span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <div className="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
-                  <div
-                    className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border"
-                    aria-hidden="true"
-                  >
-                    <CircleAlert className="opacity-80" size={16} strokeWidth={2} />
-                  </div>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete{" "}
-                      {table.getSelectedRowModel().rows.length} selected{" "}
-                      {table.getSelectedRowModel().rows.length === 1 ? "row" : "rows"}.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="min-w-36 p-3" align="start">
+              <div className="space-y-3">
+                <div className="text-xs font-medium text-muted-foreground">Filters</div>
+                <div className="space-y-3">
+                  {uniqueStatusValues.map((value, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`${id}-${i}`}
+                        checked={selectedStatuses.includes(value)}
+                        onCheckedChange={(checked: boolean) => handleStatusChange(checked, value)}
+                      />
+                      <Label
+                        htmlFor={`${id}-${i}`}
+                        className="flex grow justify-between gap-2 font-normal"
+                      >
+                        {status_adapter[value as keyof typeof status_adapter].label}
+                        <span className="ms-2 text-xs text-muted-foreground">
+                          {statusCounts.get(value)}
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
                 </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction>Delete</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          {/* Add user button */}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            size="sm"
+            onClick={() => {
+              setDialogsState({
+                open: "notifications",
+                payload: {
+                  clients_count: table.getSelectedRowModel().rows.length,
+                  clients_ids: table.getSelectedRowModel().rows.map((row) => row.original.id),
+                  global: table.getSelectedRowModel().rows.length ? false : true,
+                }
+              })
+            }}
+            className={cn("ml-auto")}
+            variant="outline"
+          >
+            <Megaphone
+              className="-ms-1 me-2 opacity-60"
+              size={16}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            Enviar notificación
+            {table.getSelectedRowModel().rows.length > 0 ? (
+              <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+                {table.getSelectedRowModel().rows.length}
+              </span>
+            ) : ' global'}
+          </Button>
           <Button size="sm" className="ml-auto" asChild>
             <Link href="/users/new">
               <Plus />
@@ -391,6 +389,7 @@ export default function UsersTable() {
           </Pagination>
         </div>
       </div>
+      <NotificationsDialog />
     </div>
   );
 }
