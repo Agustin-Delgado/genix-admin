@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import { ArrowRight, ArrowUp } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { useEffect, useState } from "react";
-import { studies_extension } from "../new-study/page";
 import { useParams, usePathname } from "next/navigation";
 import { useListClientStudiesQuery } from "@/services/studies";
+import { studies_extension } from "../data";
 
 
 export default function StudyCard({ study, isStudiesLoading }: {
