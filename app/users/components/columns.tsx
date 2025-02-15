@@ -56,7 +56,16 @@ function RowActions({ row }: { row: Row<Client> }) {
                 <Eye />
                 <span>Ver detalles</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDialogsState({
+                  open: "notifications",
+                  payload: {
+                    clients_count: 1,
+                    clients_ids: [row.original.id],
+                    global: false,
+                  }
+                })}
+              >
                 <Bell />
                 <span>Envíar notificación</span>
               </DropdownMenuItem>

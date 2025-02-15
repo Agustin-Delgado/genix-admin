@@ -15,7 +15,7 @@ export const studiesApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Study'],
+  tagTypes: ['Study', 'GetStudy'],
   endpoints: (builder) => ({
     listStudies: builder.query<Study[], void>({
       query: () => '/studies',
@@ -29,6 +29,7 @@ export const studiesApi = createApi({
     }),
     getClientStudy: builder.query<ClientStudies['data'][0], string>({
       query: (id) => `/client_studies/${id}`,
+      providesTags: (result, error, id) => [{ type: 'GetStudy', id }],
     }),
     getClientStudyDownloadLink: builder.query<{ url: string }, string>({
       query: (id) => `/client_studies/${id}/download_link`,
@@ -51,6 +52,14 @@ export const studiesApi = createApi({
       }),
       invalidatesTags: ['Study'],
     }),
+    updateStudy: builder.mutation<Study, Partial<{ storage_ref: string; study_code: string; client_id: string; metadata: object }> & { id: string }>({
+      query: ({ id, ...body }) => ({
+        url: `/client_studies/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'GetStudy', id }],
+    }),
     downloadClientStudy: builder.mutation<{ url: string }, string>({
       query: (id) => `/client_studies/${id}/download_link`,
     }),
@@ -65,5 +74,6 @@ export const {
   useGetClientStudyQuery,
   useGetClientStudyDownloadLinkQuery,
   useDeleteClientStudyMutation,
-  useDownloadClientStudyMutation
+  useDownloadClientStudyMutation,
+  useUpdateStudyMutation,
 } = studiesApi;

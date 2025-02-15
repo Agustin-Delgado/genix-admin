@@ -3,25 +3,40 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
-import { useGetClientStudyQuery } from "@/services/studies";
+import { useDownloadClientStudyMutation, useGetClientStudyQuery } from "@/services/studies";
 import { useParams } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import MarkdownPreview from '@uiw/react-markdown-preview';
-import { Edit, Trash } from "lucide-react";
+import { Edit, FileIcon, Trash } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { Square } from "../components/square";
 import { setDialogsState } from "@/lib/store/dialogs-store";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ClientStudyDetailsPage() {
+  const { toast } = useToast();
+
   const { client_study_id, user_id } = useParams<{ client_study_id: string; user_id: string }>();
+
+  const [downloadStudy] = useDownloadClientStudyMutation();
 
   const { data: client, isLoading: isClientLoading } = useGetClientQuery(user_id ?? "");
   const { data: clientStudy, isLoading: isStudyLoading } = useGetClientStudyQuery(client_study_id ?? "");
 
-  console.log(isClientLoading, isStudyLoading);
-
-  const containerClass =
-    "p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group";
+  const handleDownloadStudy = async () => {
+    try {
+      const response = await downloadStudy(client_study_id);
+      if (response.data?.url) {
+        window.open(response.data.url || "", "_blank");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo descargar el estudio",
+        variant: "destructive"
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -120,11 +135,25 @@ export default function ClientStudyDetailsPage() {
             </Button>
           </div>
         </div>
+        <div className="flex flex-col space-y-2">
+          <Label>PDF Adjunto</Label>
+          <div
+            onClick={handleDownloadStudy}
+            className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all h-10 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
+                <FileIcon className="w-3.5 h-3.5" />
+              </Square>
+              <span className="font-medium text-sm">{clientStudy?.storage_ref}</span>
+            </div>
+          </div>
+        </div>
         <div className={cn("space-y-2", !clientStudy?.metadata.blocks?.length && "hidden")}>
           <Label>Bloques</Label>
           {clientStudy?.code === "nutritional" && (
             clientStudy?.metadata?.blocks?.map((block, index: number) => (
-              <div key={index} className={containerClass}>
+              <div key={index} className={'p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group'}>
                 <span className="font-medium">{block.title}</span>
                 <MarkdownPreview
                   wrapperElement={{ "data-color-mode": "light" }}
@@ -137,7 +166,7 @@ export default function ClientStudyDetailsPage() {
           )}
           {clientStudy?.code === "training" && (
             clientStudy?.metadata?.blocks?.map((block, index: number) => (
-              <div key={index} className={containerClass}>
+              <div key={index} className={'p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group'}>
                 <span className="font-medium">
                   {block.day}
                 </span>
@@ -152,7 +181,7 @@ export default function ClientStudyDetailsPage() {
           )}
           {clientStudy?.code === "supplements" && (
             clientStudy?.metadata?.blocks?.map((block, index: number) => (
-              <div key={index} className={containerClass}>
+              <div key={index} className={'p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group'}>
                 <div className="flex gap-1">
                   <span className="font-semibold">
                     {block.supplement}:
@@ -168,8 +197,15 @@ export default function ClientStudyDetailsPage() {
         </div>
         <div className={cn("space-y-2", !clientStudy?.metadata.obs && "hidden")}>
           <Label>Observaciones</Label>
-          <div className={containerClass}>
+          <div className={'p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group'}>
             <span>{clientStudy?.metadata.obs || "No hay observaciones"}</span>
+          </div>
+        </div>
+
+        <div className={cn("space-y-2", !clientStudy?.metadata.note && "hidden")}>
+          <Label>Notas</Label>
+          <div className={'p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group'}>
+            <span>{clientStudy?.metadata.note || "No hay notas"}</span>
           </div>
         </div>
       </div>

@@ -133,18 +133,18 @@ export default function UsersTable() {
 
     const values = Array.from(statusColumn.getFacetedUniqueValues().keys());
     return values.sort();
-  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
+  }, [table]);
 
   const statusCounts = useMemo(() => {
     const statusColumn = table.getColumn("status");
     if (!statusColumn) return new Map();
     return statusColumn.getFacetedUniqueValues();
-  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
+  }, [table]);
 
   const selectedStatuses = useMemo(() => {
     const filterValue = table.getColumn("status")?.getFilterValue() as string[];
     return filterValue ?? [];
-  }, [table.getColumn("status")?.getFilterValue()]);
+  }, [table]);
 
   const handleStatusChange = (checked: boolean, value: string) => {
     const filterValue = table.getColumn("status")?.getFilterValue() as string[];
@@ -238,7 +238,7 @@ export default function UsersTable() {
               strokeWidth={2}
               aria-hidden="true"
             />
-            Enviar notificación
+            Envíar notificación
             {table.getSelectedRowModel().rows.length > 0 ? (
               <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
                 {table.getSelectedRowModel().rows.length}

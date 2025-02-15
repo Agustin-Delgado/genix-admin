@@ -21,13 +21,19 @@ import { Button } from "./ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { useCreateNotificationMutation } from "@/services/notifications"
+import { useToast } from "@/hooks/use-toast"
 
 const MarkdownArea = dynamic(() => import("../components/markdown-area"), { ssr: false });
 
 export default function NotificationsDialog() {
+  const { toast } = useToast()
+
   const [dialogState, setDialogState] = useState<DialogsState>({ open: false })
 
   const payload = dialogState.payload as { clients_count: number, clients_ids: string[], global: boolean }
+
+  const [createNotification, { isLoading }] = useCreateNotificationMutation()
 
   const form = useForm<z.infer<typeof newNotificationSchema>>({
     resolver: zodResolver(newNotificationSchema),
@@ -40,13 +46,34 @@ export default function NotificationsDialog() {
 
   const onOpenChange = () => {
     closeDialogs()
+    form.reset()
   }
 
   async function onSubmit(data: z.infer<typeof newNotificationSchema>) {
-    console.log(data)
-  }
+    try {
+      const response = await createNotification({
+        notification_type: data.notification_type,
+        title: data.title,
+        body: data.body,
+        client_ids: payload?.clients_ids.length > 0 ? payload.clients_ids : null
+      })
 
-  console.log(payload)
+      if (response.data?.id) {
+        toast({
+          title: "Notificación enviada",
+          description: "La notificación se ha enviado correctamente",
+        })
+        closeDialogs()
+      }
+
+    } catch (err) {
+      toast({
+        title: "Algo salió mal",
+        variant: "destructive",
+        description: "No se pudo enviar la notificación, por favor intenta de nuevo",
+      })
+    }
+  }
 
   useEffect(() => {
     const subscription = dialogsStateObservable.subscribe(setDialogState)
@@ -140,7 +167,7 @@ export default function NotificationsDialog() {
               //disabled={isLoading}
               >
                 <AnimatePresence mode="wait">
-                  {false ? (
+                  {isLoading ? (
                     <motion.div
                       key="loader"
                       initial={{ opacity: 0, scale: 0.8 }}

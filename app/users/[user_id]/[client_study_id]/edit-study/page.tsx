@@ -17,7 +17,7 @@ import { setDialogsState } from "@/lib/store/dialogs-store";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
 import { useUploadFileToS3Mutation } from "@/services/s3";
-import { useCreateStudyMutation, useGetClientStudyQuery } from "@/services/studies";
+import { useUpdateStudyMutation, useGetClientStudyQuery, useDownloadClientStudyMutation } from "@/services/studies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileIcon, Loader2, Plus, Trash } from "lucide-react";
@@ -32,64 +32,84 @@ import { Square } from "../../components/square";
 import EditBlockDialog from "./components/edit-block-dialog";
 import { createStudySchema } from "../../utils";
 
+function getStorageRef(urlStr: string) {
+  try {
+    const url = new URL(urlStr);
+    const pathWithSlash = url.pathname;
+
+    const path = pathWithSlash.startsWith('/') ? pathWithSlash.substring(1) : pathWithSlash;
+
+    return decodeURIComponent(path);
+  } catch (error) {
+    console.log(error)
+    return null;
+  }
+}
+
 export default function EditClientStudyPage() {
   const router = useTransitionRouter()
 
   const { client_study_id, user_id } = useParams<{ client_study_id: string; user_id: string }>();
   const { toast } = useToast()
 
-  const dynamicSchema = createStudySchema(client_study_id);
-
   const [uploadFileToS3] = useUploadFileToS3Mutation();
-  const [createStudy] = useCreateStudyMutation();
+  const [updateStudy] = useUpdateStudyMutation();
+  const [downloadStudy] = useDownloadClientStudyMutation();
 
   const { data: clientStudy, isLoading: isClientStudyLoading } = useGetClientStudyQuery(client_study_id);
   const { data: client, isLoading: isClientLoading } = useGetClientQuery(user_id ?? "");
 
-  console.log(clientStudy)
-
-  const [open, setOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [loadNewStudy, setLoadNewStudy] = useState(false);
+
+  const dynamicSchema = createStudySchema(client_study_id, loadNewStudy);
 
   const form = useForm<z.infer<typeof dynamicSchema>>({
     resolver: zodResolver(dynamicSchema),
     defaultValues: {
       client_id: "",
       study_code: "",
+      storage_ref: "",
     },
   });
 
   async function onSubmit(data: z.infer<typeof dynamicSchema>) {
-    console.log(data)
-    /*     setLoading(true);
-        try {
-          const storage_ref = await uploadFileToS3({
-            file: data.file,
-            client_id: data.client_id,
-          }).unwrap();
-    
-          await createStudy({
-            storage_ref,
-            study_code: data.study_code,
-            client_id: data.client_id,
-            metadata: (data as any).metadata,
-          }).unwrap();
-    
-          toast({
-            title: "Estudio creado",
-            description: "El estudio se ha creado exitosamente",
-          });
-    
-          router.push(`/users/${user_id}`)
-        } catch (err: any) {
-          toast({
-            title: "Algo salió mal",
-            variant: "destructive",
-            description: "Por favor, intenta de nuevo",
-          })
-        } finally {
-          setLoading(false);
-        } */
+    setLoading(true);
+    try {
+      let storage_ref = getStorageRef((await downloadStudy(client_study_id)).data?.url!);
+
+      if (data.file) {
+        storage_ref = await uploadFileToS3({
+          file: data.file,
+          client_id: data.client_id,
+        }).unwrap();
+      }
+
+      const response = await updateStudy({
+        id: client_study_id,
+        storage_ref: storage_ref!,
+        study_code: data.study_code,
+        client_id: data.client_id,
+        metadata: (data as any).metadata,
+      })
+
+      if (response.data?.id) {
+        toast({
+          title: "Estudio actualizado",
+          description: "El estudio ha sido actualizado exitosamente",
+        });
+      }
+
+      router.push(`/users/${user_id}`)
+    } catch (err: any) {
+      toast({
+        title: "Algo salió mal",
+        variant: "destructive",
+        description: "Por favor, intenta de nuevo",
+      })
+    } finally {
+      setLoading(false);
+    }
   }
 
   const uploadedFile = useWatch({
@@ -97,13 +117,12 @@ export default function EditClientStudyPage() {
     name: "file",
   });
 
-  //console.log(form.watch())
-
   useEffect(() => {
     if (!clientStudy) return;
 
     form.setValue("study_code", clientStudy?.code);
     form.setValue("metadata", clientStudy?.metadata);
+    form.setValue("storage_ref", clientStudy?.storage_ref);
   }, [clientStudy]);
 
   useEffect(() => {
@@ -197,41 +216,63 @@ export default function EditClientStudyPage() {
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="file"
-            render={({ field }) => (
-              <FormItem className="space-y-1 group col-span-2">
-                <FormLabel className={cn("group-focus-within:text-primary transition-colors", form.formState.errors.file && "group-focus-within:text-destructive")}>
-                  PDF Adjunto
-                </FormLabel>
-                <FormControl>
-                  <FileUploader onChange={field.onChange} />
-                </FormControl>
-                {uploadedFile && (
-                  <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all">
-                    <div className="flex items-center gap-2">
-                      <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
-                        <FileIcon className="w-3.5 h-3.5" />
-                      </Square>
-                      <span className="font-medium text-sm">{uploadedFile.name}</span>
-                    </div>
+          {clientStudy?.storage_ref && !loadNewStudy ?
+            <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all group">
+              <div className="flex items-center gap-2">
+                <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
+                  <FileIcon className="w-3.5 h-3.5" />
+                </Square>
+                <span className="font-medium text-sm">{clientStudy.storage_ref}</span>
+              </div>
 
-                    <Button
-                      className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                      variant="destructive"
-                      type="button"
-                      size="icon"
-                      onClick={() => form.resetField("file")}
-                    >
-                      <Trash />
-                    </Button>
-                  </div>
+              <Button
+                className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                variant="destructive"
+                type="button"
+                size="icon"
+                onClick={() => setLoadNewStudy(true)}
+              >
+                <Trash />
+              </Button>
+            </div> : (
+              <FormField
+                control={form.control}
+                name="file"
+                render={({ field }) => (
+                  <FormItem className="space-y-1 group col-span-2">
+                    <FormLabel className={cn("group-focus-within:text-primary transition-colors", form.formState.errors.file && "group-focus-within:text-destructive")}>
+                      PDF Adjunto
+                    </FormLabel>
+                    <FormControl>
+                      <FileUploader onChange={field.onChange} />
+                    </FormControl>
+                    {uploadedFile && (
+                      <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all">
+                        <div className="flex items-center gap-2">
+                          <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
+                            <FileIcon className="w-3.5 h-3.5" />
+                          </Square>
+                          <span className="font-medium text-sm">{uploadedFile.name}</span>
+                        </div>
+
+                        <Button
+                          className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          variant="destructive"
+                          type="button"
+                          size="icon"
+                          onClick={() => form.resetField("file")}
+                        >
+                          <Trash />
+                        </Button>
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
                 )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              />
+            )
+
+          }
           {clientStudy?.code !== "lab" && clientStudy?.code !== "in_body" && clientStudy?.code !== "genetic" && (
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-end">

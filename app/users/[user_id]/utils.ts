@@ -1,13 +1,16 @@
 import { z } from "zod";
 
-export const createStudySchema = (studyCode: string) => {
+export const createStudySchema = (studyCode: string, fileRequired: boolean = false) => {
   const baseSchema = z.object({
     client_id: z.string(),
     study_code: z.string(),
-    file: z.instanceof(File, {
+    file: !fileRequired ? z.instanceof(File, {
+      message: "El archivo es requerido",
+    }).optional() : z.instanceof(File, {
       message: "El archivo es requerido",
     }),
-    metadata: z.object({}).passthrough().optional()
+    metadata: z.object({}).passthrough().optional(),
+    storage_ref: z.string().optional(),
   });
   switch (studyCode) {
     case "nutritional":

@@ -15,13 +15,24 @@ export const notificationsApi = createApi({
       return headers
     },
   }),
+  tagTypes: ['Notification'],
   endpoints: (builder) => ({
     listNotifications: builder.query<Notification[], void>({
       query: () => 'notifications',
+      providesTags: ['Notification'],
+    }),
+    createNotification: builder.mutation<Notification, { notification_type: string, title: string, body: string, client_ids: string[] | null }>({
+      query: (body) => ({
+        url: 'notifications',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Notification'],
     }),
   }),
 })
 
 export const {
   useListNotificationsQuery,
+  useCreateNotificationMutation,
 } = notificationsApi

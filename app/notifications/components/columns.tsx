@@ -1,3 +1,6 @@
+import { notification_types } from "@/app/users/utils";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Notification } from "@/schemas/notifications";
 import {
   ColumnDef
@@ -33,20 +36,29 @@ export const columns: ColumnDef<Notification>[] = [
     accessorKey: "notification_type",
     size: 220,
     cell: ({ row }) => <div>
-      {notificationType[row.original.notification_type as keyof typeof notificationType]}
+      <Badge
+        className={cn("shadow-lg",
+          notification_types[row.original.notification_type as keyof typeof notificationType].color,
+        )}
+      >
+        {notificationType[row.original.notification_type as keyof typeof notificationType]}
+      </Badge>
     </div>,
   },
   {
     header: "Clientes alcanzados",
     accessorKey: "clients_count",
     size: 220,
+    cell: ({ row }) => <div>
+      {row.original.clients_count === 0 ? "Todos los clientes" : row.original.clients_count}
+    </div>,
   },
   {
-    header: "Creado el",
+    header: "Fecha de creación",
     accessorKey: "created_at",
     size: 220,
     cell: ({ row }) => <div>
-      {format(new Date(row.original.created_at), "dd MMM yyyy - HH:mm a", { locale: es })}
+      {row.original.created_at}
     </div>,
   },
 ];
