@@ -137,17 +137,28 @@ export default function ClientStudyDetailsPage() {
         </div>
         <div className="flex flex-col space-y-2">
           <Label>PDF Adjunto</Label>
-          <div
-            onClick={handleDownloadStudy}
-            className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all h-10 cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
-                <FileIcon className="w-3.5 h-3.5" />
-              </Square>
-              <span className="font-medium text-sm">{clientStudy?.storage_ref}</span>
+          {clientStudy?.storage_ref ? (
+            <div
+              onClick={handleDownloadStudy}
+              className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all h-10 cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
+                  <FileIcon className="w-3.5 h-3.5" />
+                </Square>
+                <span className="font-medium text-sm">{clientStudy?.storage_ref}</span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all h-10 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
+                  <FileIcon className="w-3.5 h-3.5" />
+                </Square>
+                <span className="text-muted-foreground text-sm">No hay PDF adjunto</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className={cn("space-y-2", !clientStudy?.metadata.blocks?.length && "hidden")}>
           <Label>Bloques</Label>
