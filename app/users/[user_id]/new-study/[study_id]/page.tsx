@@ -59,7 +59,7 @@ export default function NewStudyPage() {
     setLoading(true);
     try {
       const storage_ref = await uploadFileToS3({
-        file: data.file,
+        file: data.file!,
         client_id: data.client_id,
       }).unwrap();
 

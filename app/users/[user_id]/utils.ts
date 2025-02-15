@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createStudySchema = (studyCode: string, fileRequired: boolean = false) => {
+export const createStudySchema = (studyCode: string, fileRequired: boolean = true) => {
   const baseSchema = z.object({
     client_id: z.string(),
     study_code: z.string(),
