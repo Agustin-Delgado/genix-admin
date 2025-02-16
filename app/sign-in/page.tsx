@@ -64,10 +64,7 @@ export default function SignIn() {
     <div className={cn("flex flex-col gap-6")}>
       <Card className="shadow-lg shadow-border border">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription className="text-base">
-            Sign in to your account
-          </CardDescription>
+          <CardTitle className="text-2xl font-medium">Iniciar sesión</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -83,7 +80,7 @@ export default function SignIn() {
                           htmlFor="email"
                           className={cn("group-focus-within:text-primary transition-colors", form.formState.errors.email && "group-focus-within:text-destructive")}
                         >
-                          Email
+                          Correo electrónico
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -110,7 +107,7 @@ export default function SignIn() {
                           htmlFor="password"
                           className={cn("group-focus-within:text-primary transition-colors", form.formState.errors.password && "group-focus-within:text-destructive")}
                         >
-                          Password
+                          Contraseña
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
