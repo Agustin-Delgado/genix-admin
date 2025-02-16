@@ -133,18 +133,18 @@ export default function UsersTable() {
 
     const values = Array.from(statusColumn.getFacetedUniqueValues().keys());
     return values.sort();
-  }, [table]);
+  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
 
   const statusCounts = useMemo(() => {
     const statusColumn = table.getColumn("status");
     if (!statusColumn) return new Map();
     return statusColumn.getFacetedUniqueValues();
-  }, [table]);
+  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
 
   const selectedStatuses = useMemo(() => {
     const filterValue = table.getColumn("status")?.getFilterValue() as string[];
     return filterValue ?? [];
-  }, [table]);
+  }, [table.getColumn("status")?.getFilterValue()]);
 
   const handleStatusChange = (checked: boolean, value: string) => {
     const filterValue = table.getColumn("status")?.getFilterValue() as string[];
