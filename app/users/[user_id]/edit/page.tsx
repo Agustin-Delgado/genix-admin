@@ -21,14 +21,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { newClientSchema } from "@/schemas/clients"
-import { useCreateClientMutation, useGetClientQuery, useUpdateClientMutation } from "@/services/clients"
+import { useGetClientQuery, useUpdateClientMutation } from "@/services/clients"
+import { parseDate } from "@internationalized/date"
+import { format, parseISO } from "date-fns"
 import { AnimatePresence, motion } from "framer-motion"
-import { AtSign, CalendarIcon, IdCard, Loader2, Phone } from "lucide-react"
+import { CalendarIcon, IdCard, Loader2, Phone } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
-import { Button as AriaButton, DatePicker, DateValue, Dialog, Group, I18nProvider, Label, Popover } from "react-aria-components"
-import { format, isValid, parse, parseISO } from "date-fns"
-import { fromDate, parseAbsoluteToLocal, parseDate } from "@internationalized/date"
+import { useEffect, useState } from "react"
+import { Button as AriaButton, DatePicker, Dialog, Group, I18nProvider, Label, Popover } from "react-aria-components"
 
 export default function EditClientPage() {
   const router = useRouter()

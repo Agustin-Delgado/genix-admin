@@ -47,18 +47,34 @@ export default function Blocks() {
               className="!text-sm"
               style={{ padding: 16, all: "revert" }}
             />
-            <Button
-              className="absolute top-4 right-4 rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-              variant="destructive"
-              type="button"
-              size="icon"
-              onClick={() => {
-                const blocks = metadata.blocks.filter((_: any, i: number) => i !== index);
-                setValue("metadata", { ...metadata, blocks });
-              }}
-            >
-              <Trash />
-            </Button>
+            <div className="flex gap-2 absolute top-4 right-4">
+              <Button
+                className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                variant="outline"
+                type="button"
+                size="icon"
+                onClick={() => {
+                  setDialogsState({
+                    open: "edit-block",
+                    payload: { blockId: index },
+                  });
+                }}
+              >
+                <Pencil />
+              </Button>
+              <Button
+                className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                variant="destructive"
+                type="button"
+                size="icon"
+                onClick={() => {
+                  const blocks = metadata.blocks.filter((_: any, i: number) => i !== index);
+                  setValue("metadata", { ...metadata, blocks });
+                }}
+              >
+                <Trash />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
@@ -79,18 +95,34 @@ export default function Blocks() {
               className="!text-sm"
               style={{ padding: 16, all: "revert" }}
             />
-            <Button
-              className="absolute top-4 right-4 rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-              variant="destructive"
-              type="button"
-              size="icon"
-              onClick={() => {
-                const blocks = metadata.blocks.filter((_: any, i: number) => i !== index);
-                setValue("metadata", { ...metadata, blocks });
-              }}
-            >
-              <Trash />
-            </Button>
+            <div className="flex gap-2 absolute top-4 right-4">
+              <Button
+                className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                variant="outline"
+                type="button"
+                size="icon"
+                onClick={() => {
+                  setDialogsState({
+                    open: "edit-block",
+                    payload: { blockId: index },
+                  });
+                }}
+              >
+                <Pencil />
+              </Button>
+              <Button
+                className="rounded-full h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                variant="destructive"
+                type="button"
+                size="icon"
+                onClick={() => {
+                  const blocks = metadata.blocks.filter((_: any, i: number) => i !== index);
+                  setValue("metadata", { ...metadata, blocks });
+                }}
+              >
+                <Trash />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
