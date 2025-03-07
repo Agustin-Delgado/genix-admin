@@ -72,6 +72,16 @@ export const newClientSchema = z.object({
   email: z.string({ required_error: "El email es requerido" }).email({ message: "El email es requerido" }),
 })
 
+export const clientResponseSchema = z.object({
+  data: z.array(clientSchema),
+  current_page: z.number(),
+  per_page: z.number(),
+  total_pages: z.number(),
+  total_elements: z.number(),
+})
+
 export type Client = z.infer<typeof clientSchema>
+export type ListClientResponse = z.infer<typeof clientResponseSchema>
+
 export type ClientStudies = z.infer<typeof clientStudiesSchema>
 export type NewClient = z.infer<typeof newClientSchema>

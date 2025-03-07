@@ -27,9 +27,9 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import NewBlockDialog from "../../components/new-block-dialog";
-import Blocks from "./components/blocks";
-import { createStudySchema, getStudyDefaultValues } from "../../utils";
 import { Square } from "../../components/square";
+import { createStudySchema, getStudyDefaultValues } from "../../utils";
+import Blocks from "./components/blocks";
 import Parameters from "./components/parameters";
 
 export default function NewStudyPage() {
@@ -52,9 +52,6 @@ export default function NewStudyPage() {
     resolver: zodResolver(dynamicSchema),
     defaultValues: getStudyDefaultValues(study_id),
   });
-
-  console.log(form.formState.errors);
-  console.log(form.watch())
 
   async function onSubmit(data: z.infer<typeof dynamicSchema>) {
     setLoading(true);

@@ -152,7 +152,6 @@ export default function NotificationsDialog() {
                     <FormControl>
                       <MarkdownArea
                         setValue={form.setValue}
-                      //editor={editor}
                       />
                     </FormControl>
                     <FormMessage />

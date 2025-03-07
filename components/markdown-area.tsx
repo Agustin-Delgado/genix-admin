@@ -49,7 +49,8 @@ export default function Editor({ setValue, initialValue }: {
     sideMenu={false}
     formattingToolbar={false}
     onChange={async () => {
-      setValue("body", await editor.blocksToMarkdownLossy(editor.document));
+      const markdown = await editor.blocksToMarkdownLossy(editor.document);
+      setValue("body", markdown.trim());
     }}
     data-theming
   >

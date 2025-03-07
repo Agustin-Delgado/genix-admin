@@ -25,7 +25,7 @@ import { useGetClientQuery, useUpdateClientMutation } from "@/services/clients"
 import { parseDate } from "@internationalized/date"
 import { format, parseISO } from "date-fns"
 import { AnimatePresence, motion } from "framer-motion"
-import { CalendarIcon, IdCard, Loader2, Phone } from "lucide-react"
+import { ArrowLeft, CalendarIcon, IdCard, Loader2, Phone } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button as AriaButton, DatePicker, Dialog, Group, I18nProvider, Label, Popover } from "react-aria-components"
@@ -307,7 +307,15 @@ export default function EditClientPage() {
               )}
             />
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft />
+              Volver
+            </Button>
             <Button
               type="submit"
               className="w-[86px]"

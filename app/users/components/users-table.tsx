@@ -57,24 +57,25 @@ export default function UsersTable() {
 
   const [debouncedSearchFilter] = useDebounce(searchFilter, 500);
 
-  const { data: clients, isLoading } = useListClientsQuery({
-    query: debouncedSearchFilter
-  });
-
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 25,
+    pageSize: 20,
   });
-
   const [sorting, setSorting] = useState<SortingState>([{
     id: "name",
     desc: false,
   }]);
 
+  const { data: clients, isLoading } = useListClientsQuery({
+    query: debouncedSearchFilter,
+    page: pagination.pageIndex + 1,
+    state: columnFilters.find((filter) => filter.id === "status")?.value as string,
+  });
+
   const table = useReactTable({
-    data: clients ?? [],
+    data: clients?.data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -86,6 +87,8 @@ export default function UsersTable() {
     onColumnVisibilityChange: setColumnVisibility,
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    rowCount: clients?.total_elements ?? 0,
+    manualPagination: true,
     state: {
       sorting,
       pagination,
@@ -135,31 +138,17 @@ export default function UsersTable() {
     return values.sort();
   }, [table.getColumn("status")?.getFacetedUniqueValues()]);
 
-  const statusCounts = useMemo(() => {
-    const statusColumn = table.getColumn("status");
-    if (!statusColumn) return new Map();
-    return statusColumn.getFacetedUniqueValues();
-  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
-
   const selectedStatuses = useMemo(() => {
-    const filterValue = table.getColumn("status")?.getFilterValue() as string[];
-    return filterValue ?? [];
+    const filterValue = table.getColumn("status")?.getFilterValue() as string;
+    return filterValue
   }, [table.getColumn("status")?.getFilterValue()]);
 
   const handleStatusChange = (checked: boolean, value: string) => {
-    const filterValue = table.getColumn("status")?.getFilterValue() as string[];
-    const newFilterValue = filterValue ? [...filterValue] : [];
-
     if (checked) {
-      newFilterValue.push(value);
+      table.getColumn("status")?.setFilterValue(value);
     } else {
-      const index = newFilterValue.indexOf(value);
-      if (index > -1) {
-        newFilterValue.splice(index, 1);
-      }
+      table.getColumn("status")?.setFilterValue(undefined);
     }
-
-    table.getColumn("status")?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
   };
 
   return (
@@ -182,9 +171,9 @@ export default function UsersTable() {
               <Button size="sm" variant="outline" className="shadow-sm shrink-0">
                 <Filter />
                 Estado
-                {selectedStatuses.length > 0 && (
+                {selectedStatuses && (
                   <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                    {selectedStatuses.length}
+                    {selectedStatuses === "active" ? "Activo" : "Invitado"}
                   </span>
                 )}
               </Button>
@@ -197,7 +186,7 @@ export default function UsersTable() {
                     <div key={i} className="flex items-center gap-2">
                       <Checkbox
                         id={`${id}-${i}`}
-                        checked={selectedStatuses.includes(value)}
+                        checked={selectedStatuses === value}
                         onCheckedChange={(checked: boolean) => handleStatusChange(checked, value)}
                       />
                       <Label
@@ -205,9 +194,6 @@ export default function UsersTable() {
                         className="flex grow justify-between gap-2 font-normal"
                       >
                         {status_adapter[value as keyof typeof status_adapter].label}
-                        <span className="ms-2 text-xs text-muted-foreground">
-                          {statusCounts.get(value)}
-                        </span>
                       </Label>
                     </div>
                   ))}
@@ -301,7 +287,7 @@ export default function UsersTable() {
                 <TableCell colSpan={columns.length}>
                   <div className="flex flex-col items-center justify-center text-muted-foreground absolute inset-0">
                     <DnaOff className="w-8 h-8" />
-                    <p className="text-center">No se encontraron estudios.</p>
+                    <p className="text-center">No se encontraron clientes.</p>
                   </div>
                 </TableCell>
               </TableRow>
