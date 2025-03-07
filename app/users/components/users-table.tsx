@@ -46,7 +46,7 @@ import {
   Search
 } from "lucide-react";
 import { Link } from 'next-view-transitions';
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { columns } from "./columns";
 
@@ -83,7 +83,6 @@ export default function UsersTable() {
     enableSortingRemoval: false,
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -92,7 +91,6 @@ export default function UsersTable() {
     state: {
       sorting,
       pagination,
-      columnFilters,
       columnVisibility,
     },
   });
@@ -130,25 +128,21 @@ export default function UsersTable() {
     }
   }
 
-  const uniqueStatusValues = useMemo(() => {
-    const statusColumn = table.getColumn("status");
-    if (!statusColumn) return [];
-
-    const values = Array.from(statusColumn.getFacetedUniqueValues().keys());
-    return values.sort();
-  }, [table.getColumn("status")?.getFacetedUniqueValues()]);
-
-  const selectedStatuses = useMemo(() => {
-    const filterValue = table.getColumn("status")?.getFilterValue() as string;
-    return filterValue
-  }, [table.getColumn("status")?.getFilterValue()]);
-
   const handleStatusChange = (checked: boolean, value: string) => {
-    if (checked) {
-      table.getColumn("status")?.setFilterValue(value);
-    } else {
-      table.getColumn("status")?.setFilterValue(undefined);
-    }
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: 0
+    }));
+    setColumnFilters((prev) => {
+      if (checked) {
+        return [
+          ...prev.filter((filter) => filter.id !== "status"),
+          { id: "status", value },
+        ];
+      } else {
+        return prev.filter((filter) => filter.id !== "status");
+      }
+    });
   };
 
   return (
@@ -171,9 +165,9 @@ export default function UsersTable() {
               <Button size="sm" variant="outline" className="shadow-sm shrink-0">
                 <Filter />
                 Estado
-                {selectedStatuses && (
+                {columnFilters.find((filter) => filter.id === "status") && (
                   <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                    {selectedStatuses === "active" ? "Activo" : "Invitado"}
+                    {status_adapter[columnFilters.find((filter) => filter.id === "status")?.value as keyof typeof status_adapter].label}
                   </span>
                 )}
               </Button>
@@ -182,11 +176,11 @@ export default function UsersTable() {
               <div className="space-y-3">
                 <div className="text-xs font-medium text-muted-foreground">Filters</div>
                 <div className="space-y-3">
-                  {uniqueStatusValues.map((value, i) => (
+                  {Object.keys(status_adapter).map((value, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <Checkbox
-                        id={`${id}-${i}`}
-                        checked={selectedStatuses === value}
+                        id={id}
+                        checked={columnFilters.find((filter) => filter.id === "status")?.value === value}
                         onCheckedChange={(checked: boolean) => handleStatusChange(checked, value)}
                       />
                       <Label

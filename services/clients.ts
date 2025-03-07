@@ -17,7 +17,7 @@ export const clientsApi = createApi({
   tagTypes: ['Client'],
   endpoints: (builder) => ({
     listClients: builder.query<ListClientResponse, { query: string, page?: number, state?: string }>({
-      query: ({ query, page = 1, state }) => `/clients?query=${query}&page=${page}&state=${state}`,
+      query: ({ query, page = 1, state = "" }) => `/clients?query=${query}&page=${page}&state=${state}`,
       providesTags: ['Client'],
     }),
     getClient: builder.query<Client, string>({
