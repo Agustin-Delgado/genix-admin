@@ -28,8 +28,9 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import NewBlockDialog from "../../components/new-block-dialog";
 import Blocks from "./components/blocks";
-import { createStudySchema } from "../../utils";
+import { createStudySchema, getStudyDefaultValues } from "../../utils";
 import { Square } from "../../components/square";
+import Parameters from "./components/parameters";
 
 export default function NewStudyPage() {
   const router = useTransitionRouter()
@@ -49,11 +50,11 @@ export default function NewStudyPage() {
 
   const form = useForm<z.infer<typeof dynamicSchema>>({
     resolver: zodResolver(dynamicSchema),
-    defaultValues: {
-      client_id: "",
-      study_code: "",
-    },
+    defaultValues: getStudyDefaultValues(study_id),
   });
+
+  console.log(form.formState.errors);
+  console.log(form.watch())
 
   async function onSubmit(data: z.infer<typeof dynamicSchema>) {
     setLoading(true);
@@ -223,6 +224,26 @@ export default function NewStudyPage() {
               </FormItem>
             )}
           />
+          {study_id === "nutritional" && (() => {
+            const metadataError = form.formState.errors.metadata;
+            const valuesError =
+              metadataError && typeof metadataError === "object" && "values" in metadataError
+                ? (metadataError as { values: { message?: string } }).values
+                : undefined;
+            return (
+              <div className="flex flex-col gap-4">
+                <Label className={cn(valuesError && "text-destructive")}>
+                  Parametros
+                </Label>
+                <Parameters />
+                {valuesError && (
+                  <p className={cn("text-sm font-medium text-destructive")}>
+                    Los parametros son requeridos
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {study_id !== "lab" && study_id !== "in_body" && study_id !== "genetic" && (
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-end">

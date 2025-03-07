@@ -42,7 +42,7 @@ export default function NewBlockDialog({ studyCode }: { studyCode?: string }) {
     const currentBlocks: any[] = currentMetadata.blocks || [];
     const updatedBlocks = [...currentBlocks, data];
 
-    setValue("metadata", { ...currentMetadata, blocks: updatedBlocks });
+    setValue("metadata", { ...currentMetadata, blocks: updatedBlocks }, { shouldDirty: true, shouldValidate: true });
     onOpenChange()
   };
 

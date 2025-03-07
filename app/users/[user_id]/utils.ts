@@ -22,7 +22,17 @@ export const createStudySchema = (studyCode: string, fileRequired: boolean = tru
                 title: z.string(),
                 body: z.string(),
               })
-            ),
+            ).nonempty("Se requiere al menos un bloque"),
+            values: z.object({
+              fat_metabolism: z.enum(["bad", "normal", "good"], { required_error: "El metabolismo de grasas es requerido" }),
+              protein_metabolism: z.enum(["bad", "normal", "good"], { required_error: "El metabolismo de proteínas es requerido" }),
+              sensibility: z.enum(["bad", "normal", "good"], { required_error: "La sensibilidad a la insulina es requerida" }),
+              methylation: z.enum(["bad", "normal", "good"], { required_error: "La metilación es requerida" }),
+              carbs_metabolism: z.enum(["bad", "normal", "good"], { required_error: "El metabolismo de carbohidratos es requerido" }),
+              micronutrients: z.enum(["bad", "normal", "good"], { required_error: "Los micronutrientes son requeridos" }),
+              detoxification: z.enum(["bad", "normal", "good"], { required_error: "La detoxificación es requerida" }),
+              aging: z.enum(["normal", "good"], { required_error: "El envejecimiento es requerido" }),
+            }, { required_error: "Los valores son requeridos" }),
           }),
         })
       );
@@ -82,6 +92,90 @@ export const createStudySchema = (studyCode: string, fileRequired: boolean = tru
       return baseSchema;
   }
 };
+
+export const getStudyDefaultValues = (studyCode: string) => {
+  switch (studyCode) {
+    case "nutritional":
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {
+          blocks: [],
+          values: {
+            fat_metabolism: undefined,
+            protein_metabolism: undefined,
+            sensibility: undefined,
+            methylation: undefined,
+            carbs_metabolism: undefined,
+            micronutrients: undefined,
+            detoxification: undefined,
+            aging: undefined,
+          },
+        },
+        storage_ref: "",
+      };
+    case "training":
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {
+          blocks: [],
+        },
+        storage_ref: "",
+      };
+    case "supplements":
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {
+          blocks: [],
+          note: "",
+        },
+        storage_ref: "",
+      };
+    case "lab":
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {
+          obs: "",
+        },
+        storage_ref: "",
+      };
+    case "in_body":
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {
+          obs: "",
+        },
+        storage_ref: "",
+      };
+    case "genetic":
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {
+          obs: "",
+        },
+        storage_ref: "",
+      };
+    default:
+      return {
+        client_id: "",
+        study_code: "",
+        file: undefined,
+        metadata: {},
+        storage_ref: "",
+      };
+  }
+}
 
 export const getBlockSchemaAndDefaults = (study_id: string) => {
   switch (study_id) {

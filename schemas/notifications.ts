@@ -12,7 +12,7 @@ export const notificationSchema = z.object({
 
 export const newNotificationSchema = z.object({
   title: z.string({ required_error: "El título es requerido" }).min(1, { message: "El título es requerido" }),
-  body: z.string({ required_error: "El cuerpo es requerido" }).min(1, { message: "El cuerpo es requerido" }),
+  body: z.string({ required_error: "El cuerpo es requerido" }).optional(),
   notification_type: z.string({ required_error: "El tipo de notificación es requerido" }).min(1, { message: "El tipo de notificación es requerido" }),
 })
 

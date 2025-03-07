@@ -15,7 +15,7 @@ export default function Blocks() {
   const containerClass =
     "p-4 rounded-md bg-secondary shadow-sm hover:shadow-md hover:bg-secondary/50 transition-all relative group";
 
-  if (!metadata || (!metadata.blocks && !metadata.obs)) {
+  if (!metadata || ((!metadata.blocks || !metadata.blocks.length) && !metadata.obs)) {
     return (
       <div
         className={cn(

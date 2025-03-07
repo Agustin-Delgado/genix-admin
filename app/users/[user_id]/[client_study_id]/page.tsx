@@ -1,17 +1,115 @@
 'use client'
 
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent
+} from "@/components/ui/chart";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { setDialogsState } from "@/lib/store/dialogs-store";
 import { cn } from "@/lib/utils";
 import { useGetClientQuery } from "@/services/clients";
 import { useDownloadClientStudyMutation, useGetClientStudyQuery } from "@/services/studies";
-import { useParams } from "next/navigation";
-import { Label } from "@/components/ui/label";
 import MarkdownPreview from '@uiw/react-markdown-preview';
-import { Edit, FileIcon, Trash } from "lucide-react";
+import {
+  Activity, Atom, CroissantIcon as Bread, ChefHat, Citrus, Clock,
+  Dna, Droplet, Droplets, Drumstick, Edit, Egg, FileIcon, FuelIcon as Oil,
+  Pizza,
+  Salad, Trash, type LucideIcon
+} from "lucide-react";
 import { Link } from "next-view-transitions";
+import { useParams } from "next/navigation";
+import { Cell, Pie, PieChart } from "recharts";
 import { Square } from "../components/square";
-import { setDialogsState } from "@/lib/store/dialogs-store";
-import { useToast } from "@/hooks/use-toast";
+
+type ParameterStatus = "normal" | "good" | "bad"
+
+const labelsMapping: Record<string, string> = {
+  aging: "Envejecimiento",
+  methylation: "Metilación",
+  sensibility: "Sensibilidad a la insulina",
+  detoxification: "Detoxificación",
+  fat_metabolism: "Metabolismo de grasas",
+  micronutrients: "Micronutrientes",
+  carbs_metabolism: "Metabolismo de carbohidratos",
+  protein_metabolism: "Metabolismo de proteínas",
+};
+
+const iconMapping: Record<string, LucideIcon> = {
+  aging: Clock,
+  methylation: Atom,
+  sensibility: ChefHat,
+  detoxification: Droplet,
+  fat_metabolism: Pizza,
+  micronutrients: Citrus,
+  carbs_metabolism: Bread,
+  protein_metabolism: Drumstick,
+}
+
+const statusColorMapping: Record<ParameterStatus, string> = {
+  good: "#22c55e",
+  normal: "#eab308",
+  bad: "#ef4444",
+}
+
+const statusTextMapping: Record<ParameterStatus, string> = {
+  good: "Bueno",
+  normal: "Normal",
+  bad: "Malo",
+}
+
+const renderCustomizedLabel = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, midAngle, parameter } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const IconComponent = iconMapping[parameter];
+
+  return (
+    <g>
+      <foreignObject
+        x={x - 12}
+        y={y - 12}
+        width={24}
+        height={24}
+        style={{ pointerEvents: 'none', textAlign: "center" }}
+      >
+        <div className="flex items-center justify-center w-full h-full">
+          <IconComponent className="h-5 w-5 text-white" />
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
+
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium">{data.label}</p>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: data.color }} />
+            <p className="text-xs">{data.statusText}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  return null
+}
 
 export default function ClientStudyDetailsPage() {
   const { toast } = useToast();
@@ -37,6 +135,15 @@ export default function ClientStudyDetailsPage() {
       })
     }
   }
+
+  const chartData = clientStudy?.metadata?.values && Object.entries(clientStudy?.metadata?.values).map(([key, status]) => ({
+    parameter: key,
+    value: 1,
+    status,
+    label: labelsMapping[key],
+    color: statusColorMapping[status as ParameterStatus],
+    statusText: statusTextMapping[status as ParameterStatus],
+  }))
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -137,7 +244,18 @@ export default function ClientStudyDetailsPage() {
         </div>
         <div className="flex flex-col space-y-2">
           <Label>PDF Adjunto</Label>
-          {clientStudy?.storage_ref ? (
+          {isStudyLoading ? (
+            <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all h-10 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
+                  <FileIcon className="w-3.5 h-3.5" />
+                </Square>
+                <span className="font-medium text-sm blur-[6px] text-muted-foreground">
+                  Cargando PDF...
+                </span>
+              </div>
+            </div>
+          ) : clientStudy?.storage_ref ? (
             <div
               onClick={handleDownloadStudy}
               className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-md bg-secondary transition-border justify-between shadow-sm hover:shadow-md transition-all h-10 cursor-pointer"
@@ -146,7 +264,7 @@ export default function ClientStudyDetailsPage() {
                 <Square className="bg-indigo-400/20 text-indigo-500 shadow-lg shadow-indigo-400/20">
                   <FileIcon className="w-3.5 h-3.5" />
                 </Square>
-                <span className="font-medium text-sm">{clientStudy?.storage_ref}</span>
+                <span className="font-medium text-sm">{clientStudy.storage_ref}</span>
               </div>
             </div>
           ) : (
@@ -160,6 +278,49 @@ export default function ClientStudyDetailsPage() {
             </div>
           )}
         </div>
+        <Card className="flex flex-col">
+          <CardHeader className="items-center pb-0">
+            <CardTitle
+              className={cn(
+                "text-sm font-semibold",
+                isStudyLoading && "blur-[4px] text-muted-foreground"
+              )}
+            >
+              {isStudyLoading ? "Cargando Procedimientos" : "Procedimientos"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 pb-0 relative">
+            <ChartContainer
+              config={{}}
+              className={cn("mx-auto aspect-square max-h-[250px]", isStudyLoading && "blur-[6px]")}
+            >
+              <PieChart>
+                <ChartTooltip cursor={false} content={<CustomTooltip hideLabel />} />
+                <Pie
+                  data={chartData}
+                  dataKey="value"
+                  nameKey="parameter"
+                  innerRadius={50}
+                  paddingAngle={2}
+                  label={renderCustomizedLabel}
+                  labelLine={false}
+                  isAnimationActive={false}
+                >
+                  {chartData?.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            {isStudyLoading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Cargando...
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         <div className={cn("space-y-2", !clientStudy?.metadata.blocks?.length && "hidden")}>
           <Label>Bloques</Label>
           {clientStudy?.code === "nutritional" && (

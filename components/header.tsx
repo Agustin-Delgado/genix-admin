@@ -22,7 +22,7 @@ export default function Header() {
 
   const handleLogout = () => {
     Cookies.remove('sessionToken');
-    router.push('/');
+    router.push('/sign-in');
   }
 
   const userAvatar = user && user?.userable.first_name.charAt(0) + user?.userable.last_name.charAt(0);

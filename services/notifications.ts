@@ -21,7 +21,7 @@ export const notificationsApi = createApi({
       query: () => 'notifications',
       providesTags: ['Notification'],
     }),
-    createNotification: builder.mutation<Notification, { notification_type: string, title: string, body: string, client_ids: string[] | null }>({
+    createNotification: builder.mutation<Notification, { notification_type: string, title: string, body?: string, client_ids: string[] | null }>({
       query: (body) => ({
         url: 'notifications',
         method: 'POST',

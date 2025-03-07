@@ -31,6 +31,7 @@ import NewBlockDialog from "../../components/new-block-dialog";
 import { Square } from "../../components/square";
 import EditBlockDialog from "./components/edit-block-dialog";
 import { createStudySchema } from "../../utils";
+import Parameters from "../../new-study/[study_id]/components/parameters";
 
 function getStorageRef(urlStr: string) {
   try {
@@ -271,8 +272,27 @@ export default function EditClientStudyPage() {
                 )}
               />
             )
-
           }
+          {clientStudy?.code === "nutritional" && (() => {
+            const metadataError = form.formState.errors.metadata;
+            const valuesError =
+              metadataError && typeof metadataError === "object" && "values" in metadataError
+                ? (metadataError as { values: { message?: string } }).values
+                : undefined;
+            return (
+              <div className="flex flex-col gap-4">
+                <Label className={cn(valuesError && "text-destructive")}>
+                  Parametros
+                </Label>
+                <Parameters />
+                {valuesError && (
+                  <p className={cn("text-sm font-medium text-destructive")}>
+                    Los parametros son requeridos
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {clientStudy?.code !== "lab" && clientStudy?.code !== "in_body" && clientStudy?.code !== "genetic" && (
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-end">
