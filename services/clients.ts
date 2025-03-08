@@ -20,6 +20,10 @@ export const clientsApi = createApi({
       query: ({ query, page = 1, state = "" }) => `/clients?query=${query}&page=${page}&state=${state}`,
       providesTags: ['Client'],
     }),
+    getAllClients: builder.query<{ id: string, name: string }[], { query?: string }>({
+      query: ({ query = "" }) => `/clients/find_all?query=${query}`,
+      providesTags: ['Client'],
+    }),
     getClient: builder.query<Client, string>({
       query: (id) => `/clients/${id}`,
       providesTags: ['Client'],
@@ -56,4 +60,5 @@ export const {
   useCreateClientMutation,
   useUpdateClientMutation,
   useDeleteClientMutation,
+  useGetAllClientsQuery,
 } = clientsApi

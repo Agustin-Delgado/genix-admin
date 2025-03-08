@@ -31,24 +31,32 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  DnaOff
+  DnaOff,
+  Search
 } from "lucide-react";
 import { useState } from "react";
 import { columns } from "./columns";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "use-debounce";
 
 export default function NotificationsTable() {
-
-  const { data: notifications, isLoading } = useListNotificationsQuery();
+  const [searchFilter, setSearchFilter] = useState<string>("");
+  const [debouncedSearchFilter] = useDebounce(searchFilter, 500);
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 25,
+    pageSize: 20,
+  });
+
+  const { data: notifications, isLoading } = useListNotificationsQuery({
+    query: debouncedSearchFilter,
+    page: pagination.pageIndex + 1,
   });
 
   const table = useReactTable({
-    data: notifications ?? [],
+    data: notifications?.data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -59,6 +67,8 @@ export default function NotificationsTable() {
     onColumnVisibilityChange: setColumnVisibility,
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    rowCount: notifications?.total_elements ?? 0,
+    manualPagination: true,
     state: {
       pagination,
       columnFilters,
@@ -68,7 +78,22 @@ export default function NotificationsTable() {
 
   return (
     <div className="space-y-4 flex flex-col h-[calc(100vh-210px)]">
-      {/* Table */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Input
+            className="h-9 peer ps-9"
+            placeholder="Buscar por nombre..."
+            value={searchFilter}
+            onChange={(e) => {
+              table.setPagination({ pageIndex: 0, pageSize: 20 })
+              setSearchFilter(e.target.value)
+            }}
+          />
+          <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+            <Search size={16} strokeWidth={2} aria-hidden="true" />
+          </div>
+        </div>
+      </div>
       <div className="overflow-hidden rounded-lg border border-border bg-background flex shadow-lg shadow-border h-full">
         <Table className="border-separate border-spacing-0 [&_td]:border-border [&_tfoot_td]:border-t [&_th]:border-b [&_th]:border-border [&_tr:not(:last-child)_td]:border-b [&_tr]:border-none">
           <TableHeader className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm">

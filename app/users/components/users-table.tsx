@@ -154,7 +154,10 @@ export default function UsersTable() {
               className="h-9 peer ps-9"
               placeholder="Buscar por nombre..."
               value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
+              onChange={(e) => {
+                setSearchFilter(e.target.value)
+                table.setPagination({ pageIndex: 0, pageSize: 20 })
+              }}
             />
             <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
               <Search size={16} strokeWidth={2} aria-hidden="true" />
@@ -219,11 +222,6 @@ export default function UsersTable() {
               aria-hidden="true"
             />
             Envíar notificación
-            {table.getSelectedRowModel().rows.length > 0 ? (
-              <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                {table.getSelectedRowModel().rows.length}
-              </span>
-            ) : ' global'}
           </Button>
           <Button size="sm" className="ml-auto" asChild>
             <Link href="/users/new">

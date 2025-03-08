@@ -1,5 +1,5 @@
 
-import { Notification } from '@/schemas/notifications';
+import { Notification, NotificationListResponse } from '@/schemas/notifications';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Cookies from 'js-cookie';
 
@@ -17,8 +17,8 @@ export const notificationsApi = createApi({
   }),
   tagTypes: ['Notification'],
   endpoints: (builder) => ({
-    listNotifications: builder.query<Notification[], void>({
-      query: () => 'notifications',
+    listNotifications: builder.query<NotificationListResponse, { query: string, page?: number }>({
+      query: ({ query, page = 1 }) => `/notifications?query=${query}&page=${page}`,
       providesTags: ['Notification'],
     }),
     createNotification: builder.mutation<Notification, { notification_type: string, title: string, body?: string, client_ids: string[] | null }>({

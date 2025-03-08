@@ -100,24 +100,6 @@ function RowActions({ row }: { row: Row<Client> }) {
 
 export const columns: ColumnDef<Client>[] = [
   {
-    id: "select",
-    size: 40,
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-  },
-  {
     header: "Nombre",
     accessorKey: "name",
     cell: ({ row }) => <div className="font-medium">

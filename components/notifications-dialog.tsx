@@ -7,22 +7,24 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 import { closeDialogs, DialogsState, dialogsStateObservable } from "@/lib/store/dialogs-store"
 import { cn } from "@/lib/utils"
 import { newNotificationSchema } from "@/schemas/notifications"
+import { useGetAllClientsQuery } from "@/services/clients"
+import { useCreateNotificationMutation } from "@/services/notifications"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AnimatePresence, motion } from "framer-motion"
 import { Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
+import MultipleSelector from "./multi-select"
 import { Button } from "./ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { useCreateNotificationMutation } from "@/services/notifications"
-import { useToast } from "@/hooks/use-toast"
 
 const MarkdownArea = dynamic(() => import("../components/markdown-area"), { ssr: false });
 
@@ -34,6 +36,9 @@ export default function NotificationsDialog() {
   const payload = dialogState.payload as { clients_count: number, clients_ids: string[], global: boolean }
 
   const [createNotification, { isLoading }] = useCreateNotificationMutation()
+  const { data: clients } = useGetAllClientsQuery({
+    query: "",
+  })
 
   const form = useForm<z.infer<typeof newNotificationSchema>>({
     resolver: zodResolver(newNotificationSchema),
@@ -42,6 +47,11 @@ export default function NotificationsDialog() {
       body: "",
       notification_type: "",
     },
+  })
+
+  const selectedClients = useWatch({
+    control: form.control,
+    name: "client_ids",
   })
 
   const onOpenChange = () => {
@@ -55,7 +65,7 @@ export default function NotificationsDialog() {
         notification_type: data.notification_type,
         title: data.title,
         body: data.body,
-        client_ids: payload?.clients_ids.length > 0 ? payload.clients_ids : null
+        client_ids: data.client_ids && data.client_ids.length > 0 ? data.client_ids : null,
       })
 
       if (response.data?.id) {
@@ -82,6 +92,10 @@ export default function NotificationsDialog() {
     }
   }, [])
 
+  useEffect(() => {
+    form.setValue("client_ids", payload?.clients_ids)
+  }, [payload])
+
   return (
     <Dialog
       open={dialogState.open === "notifications"}
@@ -92,8 +106,10 @@ export default function NotificationsDialog() {
           <DialogTitle>Nueva notificación</DialogTitle>
           <DialogDescription>
             Enviaras la notificación a {
-              payload?.global ? "todos los clientes" : payload?.clients_count === 1 ? "1 cliente" : `${payload?.clients_count} clientes`
-            }.
+              selectedClients?.length === 0
+                ? 'todos los clientes.'
+                : selectedClients && selectedClients?.length > 1 ? `${selectedClients?.length} clientes.` : `${selectedClients?.length} cliente.`
+            }
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -119,6 +135,46 @@ export default function NotificationsDialog() {
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="client_ids"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Clientes</FormLabel>
+                    <FormControl>
+                      <MultipleSelector
+                        commandProps={{
+                          label: "Clientes",
+                          filter: (itemValue: string, search: string) => {
+                            const option = clients?.find(inst => inst.id === itemValue);
+                            return option && option.name.toLowerCase().includes(search.toLowerCase())
+                              ? 1
+                              : -1;
+                          },
+                        }}
+                        options={clients?.map((institution) => ({
+                          label: institution.name,
+                          value: institution.id,
+                        }))}
+                        placeholder="Selecciona los clientes"
+                        value={field.value?.map((value) => ({
+                          label: clients?.find(inst => inst.id === value)?.name || "",
+                          value,
+                        }))}
+                        onChange={(values) => {
+                          form.setValue("client_ids", values.map((value) => value.value))
+                        }}
+                        emptyIndicator={
+                          <p className="text-center text-sm">No hay clientes disponibles</p>
+                        }
+                      />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      Selecciona los clientes a los que deseas enviar la notificación, si no seleccionas ninguno se enviará a todos los clientes.
+                    </FormDescription>
                   </FormItem>
                 )}
               />
