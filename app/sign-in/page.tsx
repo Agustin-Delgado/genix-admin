@@ -59,7 +59,6 @@ export default function SignIn() {
     }
   }
 
-
   return (
     <div className={cn("flex flex-col gap-6")}>
       <Card className="shadow-lg shadow-border border">
