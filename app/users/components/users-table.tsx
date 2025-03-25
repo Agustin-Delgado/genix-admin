@@ -75,7 +75,7 @@ export default function UsersTable() {
   });
 
   const table = useReactTable({
-    data: clients?.data ?? [],
+    data: clients?.data.filter(client => client.user !== null) ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

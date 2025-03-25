@@ -126,15 +126,16 @@ export const columns: ColumnDef<Client>[] = [
     header: "Estado",
     accessorFn: (row) => row.user.state,
     id: "status",
-    cell: ({ row }) => (
-      <Badge
+    cell: ({ row }) => {
+      console.log(row.original)
+      return <Badge
         className={cn("shadow-lg",
           status_adapter[row.original.user.state].color,
         )}
       >
         {status_adapter[row.original.user.state].label}
       </Badge>
-    ),
+    },
     size: 100,
   },
   {
