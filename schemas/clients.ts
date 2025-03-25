@@ -65,7 +65,7 @@ const dateValueSchema: z.ZodType<DateValue> = z.custom<DateValue>((data) => {
 export const newClientSchema = z.object({
   first_name: z.string({ required_error: "El nombre es requerido" }).min(1, { message: "El nombre es requerido" }),
   last_name: z.string({ required_error: "El apellido es requerido" }).min(1, { message: "El apellido es requerido" }),
-  identification_number: z.string({ required_error: "La cédula es requerida" }).min(1, { message: "La cédula es requerida" }),
+  identification_number: z.string({ required_error: "El número de identificación es requerido" }).min(6, { message: "El número de identificación debe tener al menos 6 caracteres" }),
   birth_date: dateValueSchema,
   gender: z.enum(["male", "female", "other"], { required_error: "El género es requerido", invalid_type_error: "El género es requerido" }),
   phone_number: z.string({ required_error: "El teléfono es requerido" }).min(1, { message: "El teléfono es requerido" }),

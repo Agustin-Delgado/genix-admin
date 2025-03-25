@@ -127,7 +127,6 @@ export const columns: ColumnDef<Client>[] = [
     accessorFn: (row) => row.user.state,
     id: "status",
     cell: ({ row }) => {
-      console.log(row.original)
       return <Badge
         className={cn("shadow-lg",
           status_adapter[row.original.user.state].color,
